@@ -1,0 +1,9 @@
+[
+ {"name": "notes-drop-in", "start": 0, "end": 56, "kind": "seamless"},
+ {"name": "merge-notes-to-card", "start": 268, "end": 318, "kind": "morph"},
+ {"name": "caption-roll", "start": 280, "end": 326, "kind": "seamless"},
+ {"name": "card-expand-to-detail", "start": 437, "end": 490, "kind": "morph"},
+ {"name": "flood-from-share", "start": 536, "end": 600, "kind": "seamless"},
+ {"name": "avatars-to-logo", "start": 684, "end": 752, "kind": "morph"},
+ {"name": "logo-stamp", "start": 816, "end": 845, "kind": "seamless"}
+]

@@ -1,32 +1,32 @@
-# Direction profile: defaults, not fixed rules
+# Direction profile: taste defaults and client rejections
 
-Use these when a client asks for a polished, lively product film but leaves art direction open. Replace them whenever the current brief or the product identity calls for something else. These defaults come from repeated review of finished short-form demos; their purpose is to prevent familiar failure modes, not to impose a house style on every video.
+Use when a brief asks for a polished, lively product film and leaves direction open. The current brief always wins.
 
-## Story and framing
+## Defaults that have worked
 
-- Establish what the product is before diving into a feature, then make each feature a visual event rather than a list item.
-- Keep the real product or its faithful UI at the center. A demo should show an interaction and a visible consequence, not just a caption claiming a feature exists.
-- Let the scene breathe while viewers read. Keep one clear focal point; use micro-movement around it rather than moving every layer at once.
-- Favor full-bleed continuity where it fits. Avoid boxing the product into a decorative frame that becomes awkward during zooms. Put captions in the visual world rather than on an unrelated flat strip.
+- **Open with the product's identity** in one or two beats (logo or hero moment), then go straight into a real interaction. Never open on a static title card.
+- **The real UI is the hero.** Rebuild it as animatable components (not screenshots), full-bleed, facing the viewer, with depth from layering, light and camera, not from rotating every panel in 3D.
+- **Every feature is an event**: challenge or state, an action (tap, type, drag) and a visible result. A caption claiming a feature is not a demo.
+- **Transitions carry an object** from scene to scene (see the morph catalogue). Vary them: a film of only slides or only fades feels like a slideshow.
+- **Micro-motion everywhere, stillness where people read.** Idle float, camera drift, number rolls, squash on landings, overshoot only on rewards.
+- **Build big moments**: anticipation, contact, reaction, hold. A reveal or explosion that is over in 10 frames feels weak; give it a riser, a pause, the hit, and a moment to register.
+- **Sound**: music quiet under many purposeful SFX; every motion supported, each impact on its frame, the last hit on the song's own ending.
+- **End card that belongs to the product**: logo, one line, URL or call to action, held still for at least 1 s.
 
-## Motion and detail
+## Things clients have rejected (avoid by default)
 
-- Design each transition from a product shape, action, or color that belongs to both scenes. Make camera movement feel continuous. Use cuts when they are cleaner and more musical than a morph.
-- In a seamless or morph-led brief, make the shared form visible across the boundary. Vary the visual method across the film; a string of panel slides or opacity fades feels generic even when each cut is smooth.
-- Give big impacts a build, contact, reaction, and short hold. An explosion or reveal that vanishes immediately can feel weak even if its single frame looks dramatic.
-- Add small, motivated animation to otherwise static moments. Avoid a sequence where feature after feature merely appears over a frozen background.
-- Protect every frame from cropped labels, stray objects, temporary overlap, jumpy line breaks, and blurry enlarged UI.
-- Prefer brand-specific icons and silhouettes to generic four-point sparkles or familiar AI-like ornament. Make end cards unmistakably belong to the product.
-
-## Type and sound
-
-- Use human-sounding, concise captions. Avoid slogan fragments, em dashes, and middle-dot separators as default on-screen copy when the client has not established a different voice.
-- Give display typography a deliberate personality while retaining a calm reading system. Compare real specimens rather than accepting the first neutral sans or a system fallback.
-- In the absence of a voice brief, start with music and purposeful SFX; do not add narration by assumption. If the user requests speech, follow that brief.
-- Place audible attacks on actions, give whooshes a corresponding move, vary repeated cues, and make significant motions feel supported by sound. Keep the music from burying the effects.
-- Map more of the film's meaningful motion to sound when it feels empty: small interaction responses, object handoffs, state changes, and scene boundaries can each have a distinct sonic role. Remove cues that merely clutter the mix.
-- Do not place asset-source labels in the picture merely as production commentary. Maintain a separate manifest and satisfy any actual attribution requirement in the agreed publishing location.
+- UI inside decorative device frames or borders that look bad when the camera zooms.
+- Text on flat bands over static backgrounds; captions that do not feel part of the scene.
+- Blurry close-ups (rasterised layers scaled up).
+- Transitions that are plain crossfades or slides when "seamless" was asked for; morphs with double images or ghost text.
+- A click that misses its target, or a result that is already visible before the click.
+- Generic system fonts; generic four-point "AI sparkle" stars (use brand shapes or round glints instead).
+- Music louder than the effects; too few effects; an explosion sound that starts before the explosion; SFX a few frames early or late.
+- Caption lines that re-wrap while animating; letters or objects that stray at the frame edges after a burst.
+- Choppy entrances ("patah-patah"): hard-cornered bounce eases or keyed moves that stop and restart.
+- Em dashes, middle dots as separators and slogan-like AI phrasing in on-screen copy (unless the brand uses them).
+- A fabricated logo or identity presented as real.
 
 ## Do not freeze an old brief into the skill
 
-Past projects used different lengths, frame rates, audio densities, social safe areas, and finishing formats. A target such as 60 fps, a particular SFX count, or a fixed caption hold is valid only when the current project calls for it. Derive exact values from that project's brief and destination platform.
+Lengths, fps, cue density, safe areas and palettes come from the current project. Derive them from its brief and platform.

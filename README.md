@@ -1,44 +1,62 @@
 # Motioner
 
-A portable Agent Skill for directing, building, revising, and checking finished motion graphics. It works with Codex and Claude Code because the core instructions use the shared `SKILL.md` format. Remotion is the preferred production framework when it fits the brief; the skill does not include a Remotion project or media assets.
+An Agent Skill (Claude Code and Codex) for making motion graphics and product videos where three things are right: **smooth animation**, **seamless morph transitions**, and **sound effects and music on the exact frame**. Remotion is the default tool.
+
+It is not just advice. It ships:
+
+- **A Remotion kit** (`templates/remotion/`): curves by role, hitch-free keyframe tracks, OKLab colour mixing, a `MorphCarrier` that enforces the source/carrier/target contract (no double cards, no ghost text), path and letter morphs, flood, zoom-through and whip-pan transitions, directional motion blur, sharp close-ups, and a build pipeline.
+- **Review tools** (`scripts/`) that measure the encoded video and audio:
+
+| Script | What it does |
+|---|---|
+| `transition_review.py` | Per-transition contact sheets with speed/contrast/sharpness curves and flags: POP, STUTTER, HITCH, FLASH, BLANK, COLORJUMP, GHOST, MUDDY, SOFT; lists the fastest frame of every move (where whoosh peaks go) |
+| `contact_sheet.py` | Whole-film thumbnails at phone size for a muted review |
+| `sfx_scan.py` | Screens SFX candidates: shape, lead-in, attack, peak, length vs the move, noise; verdict per role; spectrogram cards |
+| `beat_grid.py` | Tempo, beats, bars, phrases, accents, breaks and the song's final hit in video frames |
+| `build_mix.py` | Cue sheet to mastered WAV: placement by attack/peak/end/peakcut, bar-line music edits, ducking, music kept ~9 LU under the mix, true-peak-safe mastering without crushed transients |
+| `sync_check.py` | Finds every cue in the delivered MP4 by cross-correlation and reports early/late in ms and frames |
+| `verify_video.py` | Size, fps, exact frame count, codec, pixel format, audio length |
+
+- **Reference docs** (`references/`): morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, review loop, Remotion setup, typography, direction defaults.
+- **A worked example** (`examples/papertrail/`): a 14.5 s film that uses every transition type, with its review sheets and the list of glitches the tools caught and how they were fixed.
+
+![Papertrail, whole film](examples/papertrail/review/film.png)
 
 ## Install
 
-Copy the **entire** `motioner` folder, including `references/` and `scripts/`:
+Copy the whole folder (with `references/`, `scripts/`, `templates/`):
 
-| Agent | Personal skill folder | Repository skill folder |
-| --- | --- | --- |
-| Codex | `~/.codex/skills/motioner/` | `.agents/skills/motioner/` |
+| Agent | Personal | Per repository |
+|---|---|---|
 | Claude Code | `~/.claude/skills/motioner/` | `.claude/skills/motioner/` |
+| Codex | `~/.codex/skills/motioner/` | `.agents/skills/motioner/` |
 
-Start a fresh session in the project after installing. Invoke it explicitly with `$motioner` in Codex or `/motioner` in Claude Code. Both agents can also select it automatically from its description when a video task matches. Remove or disable an older installed `directed-motion-graphics` copy so the two descriptions do not compete.
-
-The video verifier requires Python 3 and FFprobe. The SFX timing analyzer requires Python 3 and FFmpeg. Both accept a custom binary path. Creating a film requires the production tools chosen for that film, such as Node.js and Remotion. This skill does not install them.
-
-## Test that it works
-
-1. **Discovery:** In a fresh Codex session and a fresh Claude Code session, invoke the skill explicitly. Ask each agent which file it loaded. It should identify this `SKILL.md` and use its linked review reference only when reviewing.
-2. **Behavior:** Use the first prompt in [`evals/evals.json`](evals/evals.json). Run it in a disposable empty workspace. Ask for a real six-second MP4, not only a plan or source code. Check the morph, font specimens, cue map, rendered frames, full watch/listen review, and file properties. Repeat with the second prompt for product interaction and the third for a longer branded tutorial.
-3. **Automatic selection:** In new sessions, repeat one prompt without naming the skill. Confirm that the agent opens `SKILL.md`. A static poster request is a useful negative case: this skill should not be loaded merely because the poster has a visual style.
-4. **Artifact:** Watch each finished video at normal speed and destination size, first muted and then with sound. Fill in [`evals/review-scorecard.md`](evals/review-scorecard.md) for each run, including before/contact/after frames and an individual verdict for every morph or seamless handoff. Inspect its start, midpoint, and end colors as well as shape and speed. Revise weak transitions and score the new render. Compare the same prompt in both agents; if helpful, run once without the skill as a baseline. The skill works when it changes observable behavior and the finished films satisfy the brief, not merely when the agent says it loaded the skill.
-5. **Internet assets:** Confirm that the agent compared suitable SFX and visual candidates, used fitting licensed files in the video, logged source and license details, measured SFX attack or peak, and replaced weak assets after reviewing the final render. More purposeful sonic coverage is desirable; a raw cue count is not the quality measure.
-
-For a fixed 6-second, 1080 × 1920, 30 fps H.264 MP4 with audio:
-
-```text
-python scripts/verify_video.py path/to/final.mp4 --width 1080 --height 1920 --fps 30 --frames 180 --codec h264 --pixel-format yuv420p --require-audio
+```
+git clone https://github.com/Tarquished/motioner ~/.claude/skills/motioner
+pip install numpy scipy pillow opencv-python librosa
 ```
 
-The script reports a nonzero exit code when a checked property fails. It cannot judge visual quality, factual accuracy, licensing, or whether the soundtrack actually sounds good. Human playback remains part of the test.
+FFmpeg/FFprobe: the scripts use the ones on PATH, `MOTIONER_FFMPEG`/`MOTIONER_FFPROBE`, or the copies Remotion installs in `node_modules/@remotion/compositor-*`.
 
-To estimate timing offsets for downloaded SFX:
+Invoke with `/motioner` (Claude Code) or `$motioner` (Codex), or let the description trigger it for video work.
 
-```text
-python scripts/analyze_sfx.py path/to/impact.wav path/to/whoosh.mp3
+## Quick use of the tools
+
+```
+python scripts/transition_review.py out/film.mp4 --plan transitions.json --out out/review
+python scripts/sfx_scan.py research/sfx/*.mp3 --role whoosh --motion-frames 36 --fps 60 --cards out/sfx-cards
+python scripts/beat_grid.py music.mp3 --fps 60 --png out/grid.png --json out/grid.json
+python scripts/build_mix.py audio/cues.json --out public/audio/mix.wav --root .
+python scripts/sync_check.py out/film.mp4 public/audio/mix.cues.json --root .
+python scripts/verify_video.py out/film.mp4 --width 1080 --height 1920 --fps 60 --frames 873 --codec h264 --pixel-format yuv420p --require-audio
 ```
 
-The analyzer reports an energy-based attack estimate and peak position in milliseconds. Use those numbers to place candidates on the picture timeline, then listen and inspect the encoded video; the measurements alone cannot judge timing by feel.
+## Testing the skill
 
-## Share on GitHub
+Run `evals/evals.json` prompts in a fresh session and score the MP4 with `evals/review-scorecard.md`. Eval 2 (fix a glitching film) and the Papertrail example are the regression checks for morph quality and SFX sync.
 
-The repository includes an MIT license. It contains no copied client footage, music, screenshots, private paths, or chat transcripts. Users can clone it and copy this folder to either agent's skill location above. The skill is portable; its instructions cannot guarantee identical model behavior, so maintain sample prompts and review actual video output after future revisions.
+## Limits
+
+The tools measure; they do not have taste. Flags point at frames to look at, and the agent must look. Agents usually cannot hear audio: the skill makes them say so, rely on measurements (shape, alignment, sync, levels) and hand over stems and previews for a human listen.
+
+MIT licence. The repository contains no third-party media; the example downloads its sounds from Mixkit and Kenney at setup.

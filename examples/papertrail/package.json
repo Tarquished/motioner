@@ -1,0 +1,30 @@
+{
+  "name": "motioner-example-papertrail",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio src/index.ts",
+    "build": "node scripts/build.mjs",
+    "stills": "node scripts/stills.mjs",
+    "lint": "tsc --noEmit",
+    "setup": "node -e \"const fs=require('fs');fs.mkdirSync('src/motioner',{recursive:true});for(const f of fs.readdirSync('../../templates/remotion'))if(/\\.(tsx?|d\\.ts)$/.test(f))fs.copyFileSync('../../templates/remotion/'+f,'src/motioner/'+f)\" && python scripts/fetch_assets.py"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/inter-tight": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@remotion/cli": "^4.0.529",
+    "@remotion/layout-utils": "^4.0.529",
+    "@remotion/media-utils": "^4.0.529",
+    "@remotion/motion-blur": "^4.0.529",
+    "@remotion/paths": "^4.0.529",
+    "@remotion/shapes": "^4.0.529",
+    "@remotion/transitions": "^4.0.529",
+    "@types/react": "^19.2.7",
+    "flubber": "^0.4.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "remotion": "^4.0.529",
+    "typescript": "^5.9.3"
+  }
+}

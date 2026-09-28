@@ -4,11 +4,13 @@
 import argparse
 import json
 import math
-import shutil
 import subprocess
 import sys
 from fractions import Fraction
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _media import find_tool  # noqa: E402
 
 
 def positive_int(value):
@@ -29,16 +31,16 @@ def main():
     parser.add_argument("--pixel-format", help="e.g. yuv420p")
     parser.add_argument("--require-audio", action="store_true")
     parser.add_argument("--max-av-drift", type=float, default=0.25, help="seconds; default 0.25")
-    parser.add_argument("--ffprobe", default="ffprobe", help="path to FFprobe executable")
+    parser.add_argument("--ffprobe", help="path to FFprobe (default: PATH, MOTIONER_FFPROBE or Remotion's bundled copy)")
     args = parser.parse_args()
 
     if args.fps <= 0 or not math.isfinite(args.max_av_drift) or args.max_av_drift < 0:
         parser.error("fps must be positive and max-av-drift must be a finite nonnegative number")
     if not args.video.is_file():
         parser.error(f"video file does not exist: {args.video}")
-    binary = shutil.which(args.ffprobe)
+    binary = find_tool("ffprobe", args.ffprobe)
     if not binary:
-        parser.error(f"FFprobe not found: {args.ffprobe}")
+        parser.error("FFprobe not found: install it, set MOTIONER_FFPROBE, pass --ffprobe, or run inside a Remotion project")
 
     command = [
         binary, "-v", "error", "-count_frames", "-show_streams", "-show_format",

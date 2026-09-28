@@ -3,23 +3,28 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Use $motioner to create a finished six-second vertical motion graphic for a fictional note app called Papertrail. Work in a new empty folder. Deliver 1080x1920 H.264 MP4 with audio, exactly 30 fps and 180 frames. Show a messy cluster of notes becoming one clear card, then reveal the app name. No voice. Keep it readable on a phone. Source suitable licensed SFX and a visual asset online where they improve the film. Make the note-to-card handoff a visible morph, not just a dissolve. Select a clean but distinctive font after comparing two title specimens. Deliver the actual render and a short note on how you checked its transitions, sound, and imagery.",
-      "expected_output": "A real 180-frame film with a traceable shape handoff, purposeful online SFX, considered typography, documented assets, whole-film audiovisual review, and verified stream properties."
+      "prompt": "Use motioner to create a finished 14-second vertical product film for a fictional notes app called Papertrail. 1080x1920, 60 fps, H.264 MP4 with audio. Show scattered sticky notes merging into one clear card, the card opening into a detail screen where a task is checked, a Share button that opens the sharing scene, and the logo. Transitions must be seamless morphs, not fades. Find music and SFX online. No voice.",
+      "expected_output": "A real MP4 with exactly the planned frames; at least three different morph recipes (converge, container expand with child carriers, flood or path morph); transition_review sheets with a written verdict per boundary and no POP/STUTTER/HITCH; a cue sheet built from the timeline with whoosh peaks on measured fastest frames; sync_check in the delivered file within half a frame; music 8-10 LU under the mix; asset manifest. Compare with examples/papertrail."
     },
     {
       "id": 2,
-      "prompt": "Use $motioner to make an eight-second product demo from the example app folder I provide. Keep that folder read-only and put all new files elsewhere. Show one real interaction from before state through pointer contact to a visibly different after state, then a short brand ending. Use Remotion if suitable. Deliver 1920x1080, 24 fps, exactly 192 frames, H.264 MP4 with audio, no voice. Verify every product label and identity asset from the app. Source and document suitable online SFX and visuals. Inspect the encoded film for off-target clicks, preexisting results, clipped or ghosted text, weak font choice, and sound timing.",
-      "expected_output": "A faithful separate-folder 192-frame demo whose click hits the target and causes a new state; authentic or clearly conceptual identity; purposeful visual and sound sourcing; full encoded picture and sound review."
+      "prompt": "Use motioner to fix this Remotion film: the card-to-detail transition shows two cards for a moment, the headline flickers with a ghost of the old text, and some sound effects are early while others are late. Keep everything else. Deliver the fixed MP4 and say what caused each problem.",
+      "expected_output": "Diagnosis in the terms of the carrier contract (source/target drawn during the morph, crossfaded content, travelling element left in container content) with frame numbers from transition_review; fix via handoff()/MorphCarrier; SFX causes found with sfx_scan (lead-ins, wrong alignment) and sync_check (constant offset from renderer audio encode vs per-cue errors); re-render; before/after evidence."
     },
     {
       "id": 3,
-      "prompt": "Use $motioner to create a 20-second 1920x1080 branded tutorial for a fictional learning app whose small demo source, official logo, and brand palette I provide. Show five distinct steps including one card click that opens a different detail view. The detail view must not appear before the click. Use seamless scene handoffs with at least two genuine shared-element or shape morphs. One chapter is cool blue and the next is warm coral; design a palette bridge that belongs to the supplied brand instead of an arbitrary color flash. Use expressive but clean type, meaningful microanimation, and rich purposeful SFX sourced online. Keep source files read-only. Deliver an H.264 MP4 with audio and evidence from the encoded export: interaction before/contact/after frames, start/midpoint/end frames and a good/weak verdict for each morph or seamless boundary, type specimens, asset manifest, and a full watch/listen review. Revise any weak boundary and recheck it. If playback is unavailable, label it a draft rather than final.",
-      "expected_output": "A multi-step branded film that passes the interaction, identity, transition, typography, sourcing, sound, and full-review gates in review-scorecard.md; each morph or seamless boundary has encoded start/midpoint/end frame evidence, palette continuity notes, an individual good/weak/unverified verdict, and a rerendered recheck for any weak handoff; no universal cue or asset quota."
+      "prompt": "Use motioner to make a 20-second 1920x1080 tutorial for a fictional learning app. Five steps; one click opens a detail view that must not exist before the click. One chapter is cool blue and the next warm coral: bridge them without a muddy or arbitrary colour flash. At least two genuine shared-element or shape morphs, kinetic type, rich SFX from the internet, music cut on bar lines ending on the song's real ending.",
+      "expected_output": "Interaction before/contact/after frames; colour bridge mixed in OKLab with a motivated carrier; per-boundary verdicts; beat_grid output used for cuts; music edit with crossfades on bar lines; cue sheet and sync_check; verify_video PASS; honest statement of what was measured vs heard."
     },
     {
       "id": 4,
-      "prompt": "Design a static square poster for a fictional music festival. Export a PNG. Do not animate it or produce video.",
-      "expected_output": "Motioner should not trigger automatically for a static image request."
+      "prompt": "Use motioner for a 6-second logo reveal: a circle becomes our logo mark (SVG provided), then the wordmark types in, with a satisfying sound on the landing and a whoosh on the move. 1080x1080, 30 fps.",
+      "expected_output": "PathMorph with a clean 50% frame (checked on the sheet), wordmark with locked layout, whoosh peak on the measured fastest frame, landing hit aligned by attack, sync within half a frame (17 ms at 30 fps)."
+    },
+    {
+      "id": 5,
+      "prompt": "Design a static square poster for a fictional music festival. Export a PNG. Do not animate it.",
+      "expected_output": "Motioner should not trigger for a static image request."
     }
   ]
 }
