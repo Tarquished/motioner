@@ -8,8 +8,8 @@
     },
     {
       "id": 2,
-      "prompt": "Use motioner to fix this Remotion film: the card-to-detail transition shows two cards for a moment, the headline flickers with a ghost of the old text, and some sound effects are early while others are late. Keep everything else. Deliver the fixed MP4 and say what caused each problem.",
-      "expected_output": "Diagnosis in the terms of the carrier contract (source/target drawn during the morph, crossfaded content, travelling element left in container content) with frame numbers from transition_review; fix via handoff()/MorphCarrier; SFX causes found with sfx_scan (lead-ins, wrong alignment) and sync_check (constant offset from renderer audio encode vs per-cue errors); re-render; before/after evidence."
+      "prompt": "Use motioner to fix this Remotion film: the card-to-detail transition shows two cards for a moment, the headline flickers with a ghost of the old text, and some sound effects are early while others are late. Keep everything else. Deliver the fixed MP4 and say what caused each problem. Also, three dots inside the card sit still while it grows and then suddenly start moving when it fills the screen.",
+      "expected_output": "Diagnosis in the terms of the carrier contract (source/target drawn during the morph, crossfaded content, travelling element left in container content) with frame numbers from transition_review; fix via handoff()/MorphCarrier; SFX causes found with sfx_scan (lead-ins, wrong alignment) and sync_check (constant offset from renderer audio encode vs per-cue errors); re-render; before/after evidence. The dots: carried content was a frozen snapshot; fixed by rendering it live, confirmed by no HANDOFF-JUMP and a zoomed crop across the end frame."
     },
     {
       "id": 3,

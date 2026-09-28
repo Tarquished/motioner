@@ -34,7 +34,8 @@ Everything else (story, type, imagery) supports those three. Nothing is finished
 
 ### 4. Review every transition, then fix
 Render a draft and run the review loop in [review checks](references/review-checks.md):
-- `scripts/transition_review.py film.mp4 --plan transitions.json` → per-transition contact sheets plus automatic flags (POP, STUTTER, HITCH, FLASH, BLANK, COLORJUMP, GHOST, MUDDY, SOFT) and the measured fastest frame of every move.
+- `scripts/transition_review.py film.mp4 --plan transitions.json` → per-transition contact sheets plus automatic flags (POP, STUTTER, HITCH, FLASH, BLANK, COLORJUMP, GHOST, MUDDY, SOFT, and the local ones HANDOFF-JUMP, TELEPORT, JERK with pixel positions) and the measured fastest frame of every move. Give each morph its exact carrier frames as `"handoffs": [start, end]` in the plan.
+- For every local flag, zoom in: `scripts/contact_sheet.py film.mp4 --frames 538-543 --crop x,y,w,h` and look at the object frame by frame.
 - **Open every sheet and look.** Give each boundary a written verdict: good / weak / broken, with frame numbers and cause. Numbers find suspects; your eyes decide. Fix, re-render, re-review until every boundary is good. Do not ship a film because its best transition is good.
 - `scripts/contact_sheet.py` for the whole film at phone size (muted review: dead stretches, clutter, unreadable text, two focal points at once).
 
@@ -49,6 +50,10 @@ Render a draft and run the review loop in [review checks](references/review-chec
 
 ## Hard rules (each one comes from a real failure)
 - A morph is one carrier. Hide the source on the carrier's first frame, show the target on its last frame, draw nothing else of either in between. An element that travels on its own carrier must be removed from its container's content.
+- Carrier content that moves must stay **live** (render it with the current frame). A snapshot frozen at the morph's first or last frame stands still during the move and then jumps or starts moving instantly when the live scene takes over.
+- The handoff frames must match in **everything**, not just the rectangle: shadow and glow (use the kit's `shadowOf` for sources, carriers and targets), decorations (grid, light, borders), and velocity. Idle motion (float, bob, wobble) must reach zero speed at the handoff or continue in the carrier. Anything that is not carried (a ground shadow, badges, rails, labels) leaves with its own short animation; it never vanishes in one frame.
+- Moves start from rest with a visible ease-in over a few frames; the first frames of a large move should cover only a few pixels each. A curve that jumps to full speed in 2 to 3 frames reads as a teleport.
+- Small things decide quality. Check every morph's start-1/start/start+1 and end-1/end/end+1 frames as zoomed crops of the moving objects, not only as full frames.
 - Stagger carriers with `delay` inside one start/end window; shifting a carrier's start leaves the element undrawn for those frames.
 - Swap content inside a carrier sequentially (out, then in). Never cross-dissolve two texts or two UIs in one place.
 - Mix colours in OKLab and keep the carrier separated from the background (lift, shadow) while it passes through in-between tones; a pale midpoint on a pale background reads as a washed-out frame.
@@ -57,6 +62,7 @@ Render a draft and run the review loop in [review checks](references/review-chec
 - Incoming text or UI appears only after a reveal's edge has passed its position; two scenes' text must never meet at the rim.
 - Place every sound by its alignment point: attack on contact, whoosh peak on the fastest frame, riser end on the reveal, booms with long lead-ins cut to start on the hit. Never by file start.
 - Layers are stacked by render order; do not give overlays a global `zIndex` that lifts them above a later reveal.
+- A group that is scaled slowly (end-card push-in, drift) and contains text gets `will-change: transform`; otherwise the browser re-rasterises the text in steps and it shimmers.
 - The music bed sits under the effects; clients notice "music too loud" first. Effects must not be masked (build_mix warns under +2 dB).
 - Do not let the renderer encode audio for delivery; mux the mastered WAV with FFmpeg and prove sync in the final file.
 - Deliver `yuv420p` with a bt709 colour space, not full-range `yuvj420p`.

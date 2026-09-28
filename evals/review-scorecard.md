@@ -7,7 +7,7 @@ Judge the **encoded MP4**. Record agent, model, prompt id, date, output path. Ea
 | Gate | Evidence |
 |---|---|
 | Technical contract | `verify_video.py` PASS: size, fps, exact frames, h264, yuv420p, audio as long as video |
-| Carrier contract | For every morph: no frame where source + target (or two copies) are visible; no element missing for a frame; first/last carrier frames match the scenes (transition_review sheets) |
+| Carrier contract | For every morph: no frame where source + target (or two copies) are visible; no element missing for a frame; no HANDOFF-JUMP (plan lists exact `handoffs`); animated content inside carriers stays live; shadows, glows and decorations identical across the handoff; zoomed crops of start-1..start+1 and end-1..end+1 checked |
 | Smooth motion | No POP/STUTTER/HITCH/FLASH/BLANK/COLORJUMP left unexplained in `transition_review.py`; speed curves one hump per gesture |
 | Written verdict per boundary | Every boundary: good/weak/broken with frames and cause; weak ones fixed and re-verdicted |
 | Colour bridge | No muddy or arbitrary midpoint; carrier readable against the background at 50 % |

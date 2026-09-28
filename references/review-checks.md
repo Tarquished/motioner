@@ -24,7 +24,7 @@ then sound:
  {"name": "hard cut on beat 4", "start": 780, "end": 790, "kind": "cut"}]
 ```
 
-`kind`: morph, seamless, whip, zoom, cut, flash (cut/flash/whip allow one intended spike).
+`kind`: morph, seamless, whip, zoom, cut, flash (cut/flash/whip allow one intended spike). For every morph add the exact carrier frames, e.g. `"handoffs": [504, 540]`, so jumps on those frames are reported as HANDOFF-JUMP.
 
 ## Reading the flags
 
@@ -39,6 +39,15 @@ then sound:
 | GHOST | a region loses detail while barely moving (2+ frames) | crossfade, double exposure, ghost text; also intended blur-fades and occlusion edges, so look |
 | MUDDY | contrast and sharpness sag mid-window below both ends | a washed-out midpoint; carrier colour close to the background |
 | SOFT | the settled frames after are less sharp than before | an upscaled raster, leftover blur (skipped when the new scene is simply plainer) |
+| HANDOFF-JUMP | a small region jumps on a morph's exact first/last frame (needs `"handoffs"` in the plan) | frozen carrier content, a glow/shadow/decoration that differs between scene and carrier, idle motion still at speed, an element not carried that vanishes, an overlay hidden by the carrier's stacking. Confirm with a zoom at `at_px`: an unrelated element animating on the same frame (a caption letter rising) also triggers it. |
+| TELEPORT | a small region changes in one frame only | an object jump; also legitimate glyph pops, typing, impacts: zoom in and decide |
+| JERK | a small region goes from still (with a still neighbourhood) to full speed in one frame, or stops dead | a move without ease-in on something already visible, a violent curve, a staggered start; text entrances also trigger it |
+
+Local flags report `at_px` (the video pixel where it happened). Zoom in on every one:
+
+```
+python scripts/contact_sheet.py film.mp4 --frames 537-543 --crop 1400,300,420,260 --width 420 --out review/zoom.png
+```
 
 The verdict line is `suspect` when POP/STUTTER/HITCH/FLASH/BLANK/COLORJUMP fire, `check` for GHOST/MUDDY/SOFT or a rough speed curve, `clean` otherwise. `clean` is not approval: still look at the sheet.
 
@@ -47,7 +56,8 @@ Also read `motion events ... start-end@peak`: every fast move with its fastest f
 ## What to look for on each sheet
 
 1. Source, carrier and target never visible together; no element missing for a frame.
-2. First and last frames of the carrier match the scenes on either side (compare start-1 with start, end-1 with end).
+2. First and last frames of the carrier match the scenes on either side (compare start-1 with start, end-1 with end) **as zoomed crops of the objects inside**, not just the full frame: small things (dots, shadows, glows, badges) are where handoffs break.
+2b. Anything that moved before the morph keeps moving smoothly through it; nothing freezes and then leaps.
 3. The eye has one thing to follow at every frame; the carrier stays readable (contrast, size) at the midpoint.
 4. Colours: identifiable carrier colour, no grey/brown midpoint, no sudden hue.
 5. Text: no ghost text, no letter soup, no line re-wrapping, nothing clipped, captions clear of the moving edge.

@@ -13,7 +13,7 @@ export type Ease = (t: number) => number;
  *   out      entrances, things arriving, UI responding          (fast start, long settle)
  *   inOut    object moving from A to B on screen, camera moves   (symmetric)
  *   in       exits that leave the frame (only when they leave!)
- *   snap     morph carriers and shared elements                  (decisive, lands softly)
+ *   snap     morph carriers and shared elements                  (soft start, decisive, soft landing)
  *   whip     whip-pans and zoom-throughs                          (very slow ends, violent middle)
  *   anticip  a small pull-back before a big move
  */
@@ -24,7 +24,10 @@ export const ease = {
 	inOut: Easing.bezier(0.65, 0, 0.35, 1),
 	inOutSoft: Easing.bezier(0.45, 0, 0.55, 1),
 	in: Easing.bezier(0.55, 0, 1, 0.45),
-	snap: Easing.bezier(0.2, 0, 0, 1), // "emphasized" curve: most of the travel early, gentle landing
+	// carriers and shared elements: eases out of rest over ~4 frames, travels decisively, lands softly.
+	// (0.2, 0, 0, 1) was tried and rejected: 8 -> 32 -> 70 px/frame in the first 3 frames of a 700 px
+	// move reads as an object that sat still and then teleported.
+	snap: Easing.bezier(0.45, 0, 0.15, 1),
 	whip: Easing.bezier(0.77, 0, 0.175, 1),
 	anticip: Easing.bezier(0.36, 0, 0.66, -0.56),
 	expand: Easing.bezier(0.5, 0, 0.15, 1), // reveals growing from an element: leaves it gently, fills fast, lands soft

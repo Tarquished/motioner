@@ -8,7 +8,7 @@ Read before animating. Helpers are in `templates/remotion/motion.ts`.
 |---|---|---|
 | Something arrives, UI responds | `ease.out` (0.16, 1, 0.3, 1) | fast start, long settle; the default for entrances |
 | Object travels A to B on screen, camera move | `ease.inOut` (0.65, 0, 0.35, 1) | symmetric; use `inOutSoft` for slow drifts |
-| Morph carrier, shared element | `ease.snap` (0.2, 0, 0, 1) | decisive departure, gentle landing |
+| Morph carrier, shared element | `ease.snap` (0.45, 0, 0.15, 1) | eases out of rest over ~4 frames, decisive middle, gentle landing |
 | Reveal growing from an element (flood, iris) | `ease.expand` (0.5, 0, 0.15, 1) | leaves the element gently, fills fast, lands soft |
 | Whip-pan, zoom-through | `ease.whip` (0.77, 0, 0.175, 1) | violent middle, very slow ends |
 | Exit that leaves the frame | `ease.in` | only when it really leaves; never for things that stay |
@@ -26,7 +26,10 @@ The eye sees acceleration changes, not positions. A move feels choppy when its s
 - **Handoffs between two animations** (a carrier landing and the target starting its own idle) must match velocity: let the target's idle fade in over 10 to 20 frames instead of starting at full amplitude.
 - **Don't round** transforms to integer pixels during motion; it quantises slow moves into steps. Use fractional values.
 - **Frame rate**: 60 fps for UI-heavy product films (smooth scrolling and small moves); 30 fps doubles per-frame steps, so avoid very slow drifts there. Nested compositions must use the same fps.
-- `transition_review.py` flags STUTTER (a repeated frame inside a move) and HITCH (speed collapses for 1 to 2 frames); its motion curve is your speed graph.
+- **Start from rest.** A visible object that begins to move needs an ease-in the eye can see: over a 30-frame, 700 px move, `ease.snap` (0.45, 0, 0.15, 1) goes 1.4, 4.5, 8.5, 14, 20 px/frame; the rejected (0.2, 0, 0, 1) went 8, 32, 70 px/frame, which reads as a teleport. Check any curve by listing its per-frame distance for the real move length.
+- **Idle motion meets a handoff at zero speed.** A float or bob drawn with `sin` is at full speed when it crosses zero; shape it with `sin²` (zero speed at both ends) or fade its amplitude out before the object is picked up by a carrier or another move.
+- **Keep animated content alive through moves.** Content inside a moving card keeps its own animation (render with the current frame); freezing it for the move makes it jump when it resumes.
+- `transition_review.py` flags STUTTER (a repeated frame inside a move), HITCH (speed collapses for 1 to 2 frames), JERK (a still object at full speed in one frame) and TELEPORT/HANDOFF-JUMP (a small region jumps); its motion curve is your speed graph.
 
 ## Timing (60 fps; halve frames for 30 fps)
 
@@ -61,6 +64,7 @@ For every tap/click: approach on an arc with ease-in-out, press-in 4 to 5 frames
 - Close-ups: never scale a small raster up. Use `SharpZoom` (CSS `zoom` then scale down) for DOM layers, vector art for icons and logos, and render 2x (`--scale 2`, then downscale with Lanczos) for masters with heavy zooms.
 - Motion blur only along the direction of travel and only while fast (`MotionBlur`, `blurFromSpeed`). A uniform `blur()` on a moving object reads as out of focus.
 - Blur-fades on content (a few px) are fine inside a carrier's content swap; keep them short.
+- Slow scaling of a group with text (end-card push-in, 1.00 to 1.04 over seconds) makes Chrome re-rasterise the glyphs at stepped sizes: the text shimmers on some frames. Put `will-change: transform` on that group.
 
 ## Text in motion
 

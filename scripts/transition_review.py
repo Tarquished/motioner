@@ -20,6 +20,11 @@ and flags the defects that make a morph or seamless handoff look broken:
             crossfade, double exposure or ghost text
   SOFT      the settled frames after the transition are less sharp than the frames before: an
             upscaled raster or leftover blur
+  HANDOFF-JUMP  a small region jumps on a morph's first/last frame (give "handoffs" in the plan):
+            the carrier's content was a frozen snapshot, or differs from the live scene it hands to
+  TELEPORT  a small region changes in one frame only (object jump; also legit glyph pops: look)
+  JERK      a small region goes from still to full speed (or full speed to still) in one frame:
+            a move without ease-in/ease-out on something already visible
 
 Outputs (in --out): one contact sheet per transition (PNG) with every sampled frame labelled and
 flagged frames outlined in red, a curve strip under it, a whole-film motion curve, and report.json.
@@ -30,6 +35,7 @@ Examples
   python transition_review.py film.mp4 --plan transitions.json --out review/
       transitions.json: [{"name": "card->detail", "start": 110, "end": 128, "kind": "morph"}, ...]
       kind is one of morph, seamless, cut, whip, zoom, flash (flash/cut allow one intentional spike)
+      optional "handoffs": [start, end] = exact carrier frames, checked for HANDOFF-JUMP
   python transition_review.py film.mp4 --auto --out review/     (detect likely boundaries)
 """
 
@@ -106,6 +112,17 @@ def parse_frames(text, fps):
 
 
 GRID = 6
+FINE = 16  # finer grid for local motion: small objects that jump are invisible in whole-frame averages
+
+
+def fine_motion(gray, prev_gray):
+    """Mean absolute change per cell on a FINE x FINE grid."""
+    if prev_gray is None:
+        return np.zeros((FINE, FINE))
+    h, w = gray.shape
+    hh, ww = h - h % FINE, w - w % FINE
+    d = np.abs(gray[:hh, :ww] - prev_gray[:hh, :ww])
+    return d.reshape(FINE, hh // FINE, FINE, ww // FINE).mean(axis=(1, 3))
 
 
 def tile_stats(gray, prev_gray):
@@ -126,7 +143,7 @@ def tile_stats(gray, prev_gray):
 def analyse(video, analysis_width, sharp_width, keep, thumb_width):
     fps, n_hint, w, h = video_info(video)
     motion, luma, contrast, sharp, lab = [], [], [], [], []
-    tsharp, tmotion = [], []
+    tsharp, tmotion, fmotion = [], [], []
     thumbs = {}
     prev = None
     prev_mid = None
@@ -142,6 +159,7 @@ def analyse(video, analysis_width, sharp_width, keep, thumb_width):
         mid_gray = (mid.astype(np.float32) @ np.array([0.299, 0.587, 0.114], dtype=np.float32)).astype(np.float32)
         sharp.append(laplacian_var(mid_gray))
         ts, tm = tile_stats(mid_gray, prev_mid)
+        fmotion.append(fine_motion(mid_gray, prev_mid))
         prev_mid = mid_gray
         tsharp.append(ts)
         tmotion.append(tm)
@@ -152,8 +170,8 @@ def analyse(video, analysis_width, sharp_width, keep, thumb_width):
     return {
         "fps": fps, "frames": count, "width": w, "height": h,
         "motion": np.array(motion), "luma": np.array(luma), "contrast": np.array(contrast),
-        "sharp": np.array(sharp), "lab": np.array(lab), "thumbs": thumbs,
-        "tsharp": np.array(tsharp), "tmotion": np.array(tmotion),
+        "sharp": np.array(sharp), "lab": np.array(lab), "thumbs": thumbs, "width": w, "height": h,
+        "tsharp": np.array(tsharp), "tmotion": np.array(tmotion), "fmotion": np.array(fmotion),
     }
 
 
@@ -163,7 +181,13 @@ def local_median(x, i, radius=4, exclude=1):
     return float(np.median(vals)) if vals else 0.0
 
 
-def detect(data, start, end, kind, args):
+def cell_xy(data, mask_or_idx):
+    """Centre (in video pixels) of the strongest flagged cell."""
+    r, c = mask_or_idx
+    return int((c + 0.5) / FINE * data["width"]), int((r + 0.5) / FINE * data["height"])
+
+
+def detect(data, start, end, kind, args, handoffs=()):
     m, L, C, S, lab = data["motion"], data["luma"], data["contrast"], data["sharp"], data["lab"]
     n = len(m)
     flags = []
@@ -229,6 +253,41 @@ def detect(data, start, end, kind, args):
                     worst = (j, score, cells, float(ratio[bad].min()))
         if worst:
             flags.append({"frame": worst[0], "type": "GHOST", "value": round(worst[3], 2), "tiles": worst[2][:8]})
+    # Local motion, per small cell (catches a small object that jumps while the rest is calm):
+    # TELEPORT  one frame moves a lot, the frames on both sides barely move: a position jump, e.g. a
+    #           carrier whose content was a frozen snapshot handing over to live, animated content
+    # JERK      something that stood still moves at full speed from one frame to the next (no ease-in),
+    #           or stops dead; fine for things that fade in, wrong for things already on screen
+    FM = data["fmotion"]
+    lo_f, hi_f = max(2, start - pad), min(n - 2, end + pad)
+    tele, jerk, hand = None, None, None
+    for i in range(lo_f, hi_f + 1):
+        prv, cur, nxt, prv2 = FM[i - 1], FM[i], FM[i + 1], FM[i - 2]
+        t_mask = (cur > args.local) & (cur > 4 * np.maximum(prv, nxt))
+        if t_mask.any():
+            rc = np.unravel_index(int(np.argmax(np.where(t_mask, cur, -1))), cur.shape)
+            v = float(cur[rc])
+            at_handoff = any(abs(i - h) <= 1 for h in handoffs)
+            if at_handoff and (hand is None or v > hand[1]):
+                hand = (i, v, int(t_mask.sum()), cell_xy(data, rc))
+            elif not at_handoff and (tele is None or v > tele[1]):
+                tele = (i, v, int(t_mask.sum()), cell_xy(data, rc))
+        # neighbourhood maximum: a moving edge entering a cell comes from a neighbour that was already
+        # moving; a still object that starts at full speed has a still neighbourhood the frame before
+        def nb_max(a):
+            p = np.pad(a, 1)
+            return np.max([p[dy:dy + FINE, dx:dx + FINE] for dy in range(3) for dx in range(3)], axis=0)
+
+        j_mask = (nb_max(prv) < args.still) & (nb_max(prv2) < args.still) & (cur > args.local) & (nxt > 0.5 * cur) & ~t_mask
+        j_mask |= (cur > args.local) & (prv > 0.5 * cur) & (nb_max(nxt) < args.still) & (nb_max(FM[min(n - 1, i + 2)]) < args.still)
+        if j_mask.any():
+            rc = np.unravel_index(int(np.argmax(np.where(j_mask, cur, -1))), cur.shape)
+            v = float(cur[rc])
+            if jerk is None or v > jerk[1]:
+                jerk = (i, v, int(j_mask.sum()), cell_xy(data, rc))
+    for name, hit in (("HANDOFF-JUMP", hand), ("TELEPORT", tele), ("JERK", jerk)):
+        if hit:
+            flags.append({"frame": hit[0], "type": name, "value": round(hit[1], 2), "cells": hit[2], "at_px": list(hit[3])})
     # SOFT: settled frames after vs before
     before = S[max(0, start - pad):start]
     after = S[min(n - 1, end + 2):min(n, end + 2 + pad)]
@@ -376,6 +435,8 @@ def main():
     p.add_argument("--soft", type=float, default=0.7)
     p.add_argument("--event", type=float, default=1.5, help="motion level that starts a motion event (default 1.5)")
     p.add_argument("--ghost", type=float, default=0.55, help="tile sharpness ratio that counts as a blend (default 0.55)")
+    p.add_argument("--local", type=float, default=2.5, help="cell motion that counts as a real move for TELEPORT/JERK")
+    p.add_argument("--still", type=float, default=0.25, help="cell motion that counts as standing still")
     p.add_argument("--ghost-motion", type=float, default=2.0, help="tile motion below which a sag is not motion blur")
     args = p.parse_args()
 
@@ -387,10 +448,11 @@ def main():
         for k, t in enumerate(json.loads(args.plan.read_text(encoding="utf-8"))):
             s = int(round(t["start"] * fps)) if isinstance(t["start"], float) and t.get("unit") == "s" else int(t["start"])
             e = int(round(t["end"] * fps)) if isinstance(t["end"], float) and t.get("unit") == "s" else int(t["end"])
-            plan.append({"name": t.get("name", f"t{k + 1}"), "start": s, "end": e, "kind": t.get("kind", "morph")})
+            plan.append({"name": t.get("name", f"t{k + 1}"), "start": s, "end": e, "kind": t.get("kind", "morph"),
+                         "handoffs": [int(v) for v in t.get("handoffs", [])]})
     if args.at:
         for k, f in enumerate(parse_frames(args.at, fps)):
-            plan.append({"name": f"boundary@{f}", "start": f - args.window // 2, "end": f + args.window // 2, "kind": "morph"})
+            plan.append({"name": f"boundary@{f}", "start": f - args.window // 2, "end": f + args.window // 2, "kind": "morph", "handoffs": [f]})
     if not plan and not args.auto:
         p.error("give --at, --plan or --auto")
 
@@ -428,9 +490,9 @@ def main():
     report = {"video": str(args.video), "fps": data["fps"], "frames": n, "transitions": []}
     for k, t in enumerate(sorted(plan, key=lambda t: t["start"])):
         t["start"], t["end"] = max(0, t["start"]), min(n - 1, t["end"])
-        flags, rough, peak = detect(data, t["start"], t["end"], t["kind"], args)
+        flags, rough, peak = detect(data, t["start"], t["end"], t["kind"], args, t.get("handoffs", []))
         t["flags"], t["roughness"], t["peak_motion_frame"] = flags, rough, peak
-        severe = [f for f in flags if f["type"] in ("POP", "STUTTER", "BLANK", "FLASH", "COLORJUMP", "HITCH")]
+        severe = [f for f in flags if f["type"] in ("POP", "STUTTER", "BLANK", "FLASH", "COLORJUMP", "HITCH", "HANDOFF-JUMP")]
         t["auto_verdict"] = "suspect" if severe else ("check" if flags or rough > 2.5 else "clean")
         t["sampled"], t["step"] = sampled_frames(t, n)
         sheet = args.out / f"{k + 1:02d}_{''.join(c if c.isalnum() or c in '-_' else '_' for c in t['name'])}.png"

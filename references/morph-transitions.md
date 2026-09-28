@@ -34,6 +34,10 @@ Rules that make the contract hold:
 7. **Same curve for the whole group.** All carriers of one handoff share one ease and one window so they read as a single move.
 8. **The rest of the incoming scene arrives around or after the carrier**, staggered outward from it, usually in the last 30 % of the morph or right after it. Never have it already sitting behind the carrier (that is the "second card behind the first" glitch).
 9. **Only the carrier moves at full speed.** Other outgoing elements either travel with it (converge under it and stop being drawn once fully covered), or leave quickly in the first third.
+10. **Carried content stays live.** If the content inside a carrier animates (floating dots, a ticking counter, a playing preview), render it with the current frame: `content: <Scene f={frame} />`, never `<Scene f={T.start} />`. A frozen snapshot stops moving for the whole morph and then jumps to the live state on the last frame (the "teleport" of small objects).
+11. **Match every property at both handoff frames**: rect and radius, fill, border, shadow **and glow** (style scenes with the kit's `shadowOf(elevation, color)`; set `shadowColor` on the surface for coloured glows), decorations (grid, light, gradient: carry them as content that fades in), and motion (see 12).
+12. **Velocity at the handoff.** If the source has idle motion (bob, float, wobble), shape it so its speed is zero at the handoff frame (use `sin²` rather than `sin` for a bob, or let the idle motion fade out first), or keep it running inside the carrier. A carrier always starts from rest.
+13. **Things outside the carrier leave with an animation.** A ground shadow, badges, a strip rail, a label: fade/scale them out over 8 to 12 frames around the start of the morph. They never disappear on the handoff frame.
 
 ## Choosing the recipe
 
@@ -56,7 +60,7 @@ Default windows at 60 fps (halve for 30 fps): container morph 30 to 40 frames, c
 
 ## Recipe notes
 
-**Container morph.** `ease.snap` (most travel early, soft landing). Elevation high at the source if it is a card, zero at the full-screen target; add `lift` (0.4 to 0.8) when the carrier's colour passes through tones close to the background. Old content out in the first 25 to 40 %, new content in from 50 %, done by 90 %.
+**Container morph.** `ease.snap` (soft start over ~4 frames, decisive middle, soft landing). Elevation high at the source if it is a card, zero at the full-screen target; add `lift` (0.4 to 0.8) when the carrier's colour passes through tones close to the background. Old content out in the first 25 to 40 %, new content in from 50 %, done by 90 %.
 
 **Converge/merge.** The hero element becomes the carrier at `start`; its source rect comes from the drawn pose at `start`. Satellites fly on alternating arcs to the carrier's centre, shrinking to about half size and rotating to 0, and must finish by about 75 % of the window. They stop being drawn once fully inside the carrier (no fade needed: they are covered). Give the whole group a short anticipation first (spread out 5 % over half a beat), then converge on the beat.
 
@@ -91,9 +95,17 @@ Default windows at 60 fps (halve for 30 fps): container morph 30 to 40 frames, c
 | Letter soup while a caption changes | Single letters paired between unrelated strings | Roll mode; travel only shared runs of 3+ letters |
 | Letter spacing wrong only in some renders | Layout measured with `getBoundingClientRect` under a transform | Measure with `offsetLeft/offsetWidth` once, after fonts load |
 | Overlay (cursor ring, tooltip) floats above the next scene | Global `zIndex` on the overlay | Stack by render order; draw per-scene overlays inside or before the reveal |
+| A pointer or ripple vanishes the moment a morph starts | The carrier has a z-index and covers overlays drawn later | Leave `zIndex` unset on carriers (the kit no longer sets one) |
+| Part of a label disappears on a flood's first frame | The reveal shape starts at full element size on top of the label | Let the label leave first (6 to 8 frames), start the flood from a small point inside the element |
 | Stray shards or objects at the frame edges after a flood/burst | A rim or particle reaches the edge and lingers | Fade the rim before 85 % of the radius; kill particles off-frame |
 | Blurry close-up | Layer rasterised at layout size then scaled (3D transforms especially) | `SharpZoom` (CSS zoom then scale down), vector sources, 2x supersampled render |
 | Text and old text meet at the reveal edge | Incoming caption starts before the edge passes it | Start it after the edge crosses its position |
+| Small objects inside a card freeze while it moves, then jump or start moving instantly when it lands (HANDOFF-JUMP at the end frame) | Carrier content rendered at a fixed frame (snapshot) while the target scene is live | Pass the current frame into carried content |
+| A glow, shadow, grid or light snaps on/off on the handoff frame (HANDOFF-JUMP at start/end) | Source/target styled differently from the carrier surface | Same `shadowOf(elevation, color)` everywhere; carry decorations as content |
+| An object bobbing on its own stops dead when the morph starts | Idle motion still at speed on the handoff frame | `sin²`-shaped bob or fade the idle motion out before the handoff |
+| Badges, rails, shadows vanish as the morph begins | They are not part of the carrier and were simply not drawn any more | Give them an exit animation that finishes by the start frame |
+| A staggered element sits still, then leaps (JERK) | A curve with violent acceleration (e.g. bezier 0.2, 0, 0, 1: 8, 32, 70 px per frame) | Softer start (`ease.snap` = 0.45, 0, 0.15, 1: 1.4, 4.5, 8.5, 14, 20 px per frame) |
+| Text in the end card shimmers during a slow push-in | Text re-rasterised at stepped scales | `will-change: transform` on the scaled group |
 | The morph is correct but nobody notices it | Carrier too small, too fast, or the eye is elsewhere | Make the carrier the focal point before the move; 0.5 to 0.8 s for large morphs; one move at a time |
 
 ## Verdict per boundary

@@ -13,6 +13,8 @@ A fictional notes app, built to exercise every Motioner transition type and revi
 
 Glitches found by the review and fixed on the way (all now in the skill's rules): letter soup from pairing single letters between unrelated captions; wordmark letter spacing doubled because glyphs were measured with `getBoundingClientRect` under a scale; two rows vanishing for 2 frames because staggered carriers started late; a ghost title because the container carrier still carried the travelling title; the touch ripple floating above the flood (`zIndex`); a flood that popped and then stalled (spliced punch/creep curve); a washed-out merge midpoint (colour change too early, no lift); a dead 0.3 s of plain blue after the flood; the ring completing on the same frame as the Share press; every SFX 42.7 ms late in the MP4 (renderer AAC priming) until the WAV was muxed with FFmpeg; full-range `yuvj420p` output.
 
+A later review with the local detectors (HANDOFF-JUMP) found three more handoff glitches the first review had missed and they were fixed: the touch indicator vanishing at the card expand (the carriers' z-index covered it), the "Share" label cut by the flood's first frame, and (in the Motioner film) frozen carrier content.
+
 Result: 52 cues from 21 sounds, 52/52 within half a frame in the delivered MP4 (median 0.0 ms), -15.8 LUFS, -1.59 dBTP, music 8.9 LU under the mix.
 
 Evidence: `review/film.png` (whole film, muted), `review/0*_*.png` (per-transition sheets with flags and speed curves), `review/audio-timeline.png`.

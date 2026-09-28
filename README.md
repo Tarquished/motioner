@@ -9,8 +9,8 @@ It is not just advice. It ships:
 
 | Script | What it does |
 |---|---|
-| `transition_review.py` | Per-transition contact sheets with speed/contrast/sharpness curves and flags: POP, STUTTER, HITCH, FLASH, BLANK, COLORJUMP, GHOST, MUDDY, SOFT; lists the fastest frame of every move (where whoosh peaks go) |
-| `contact_sheet.py` | Whole-film thumbnails at phone size for a muted review |
+| `transition_review.py` | Per-transition contact sheets with speed/contrast/sharpness curves and flags: POP, STUTTER, HITCH, FLASH, BLANK, COLORJUMP, GHOST, MUDDY, SOFT, plus local ones on a fine grid: HANDOFF-JUMP (something small jumps on a morph's first/last frame), TELEPORT, JERK (still to full speed in one frame), with pixel positions; lists the fastest frame of every move (where whoosh peaks go) |
+| `contact_sheet.py` | Whole-film thumbnails at phone size for a muted review, or `--crop` close-ups of one region frame by frame |
 | `sfx_scan.py` | Screens SFX candidates: shape, lead-in, attack, peak, length vs the move, noise; verdict per role; spectrogram cards |
 | `beat_grid.py` | Tempo, beats, bars, phrases, accents, breaks and the song's final hit in video frames |
 | `build_mix.py` | Cue sheet to mastered WAV: placement by attack/peak/end/peakcut, bar-line music edits, ducking, music kept ~9 LU under the mix, true-peak-safe mastering without crushed transients |

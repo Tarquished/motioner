@@ -4,6 +4,9 @@ with frame and time, for a muted whole-film review at phone size.
 
   python contact_sheet.py film.mp4 --every 12 --width 180 --out review/film.png
   python contact_sheet.py film.mp4 --frames 118,120,122,124 --width 540 --out review/boundary.png
+  python contact_sheet.py film.mp4 --frames 538-543 --crop 1400,300,400,260 --width 400 --out review/zoom.png
+      (--crop x,y,w,h in video pixels: frame-by-frame close-up of a small region, e.g. where
+       transition_review reported a HANDOFF-JUMP/TELEPORT/JERK "at_px")
 
 Thumbnails are taken from the decoded file (what viewers get), not from source renders.
 """
@@ -21,7 +24,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("video", type=Path)
     ap.add_argument("--every", type=int, default=12)
-    ap.add_argument("--frames", help="comma-separated frame list instead of --every")
+    ap.add_argument("--frames", help="comma-separated frames and ranges (538-543) instead of --every")
+    ap.add_argument("--crop", help="x,y,w,h region in video pixels to show instead of the whole frame")
     ap.add_argument("--width", type=int, default=180)
     ap.add_argument("--cols", type=int, default=12)
     ap.add_argument("--out", type=Path, default=Path("contact-sheet.png"))
@@ -29,12 +33,30 @@ def main():
     from PIL import Image, ImageDraw, ImageFont
 
     fps, n, w, h = video_info(args.video)
-    wanted = sorted({int(v) for v in args.frames.split(",")}) if args.frames else list(range(0, max(1, n), args.every))
+    def parse(text):
+        out = set()
+        for part in text.split(","):
+            part = part.strip()
+            if "-" in part:
+                a, b = part.split("-")
+                out.update(range(int(a), int(b) + 1))
+            elif part:
+                out.add(int(part))
+        return sorted(out)
+
+    wanted = parse(args.frames) if args.frames else list(range(0, max(1, n), args.every))
+    crop = [int(v) for v in args.crop.split(",")] if args.crop else None
     keep = set(wanted)
     thumbs = {}
-    for i, frame in iter_frames(args.video, width=args.width):
+    for i, frame in iter_frames(args.video, width=None if crop else args.width):
         if i in keep:
-            thumbs[i] = Image.fromarray(frame)
+            if crop:
+                x, y, cw, ch = crop
+                frame = frame[y:y + ch, x:x + cw]
+            img = Image.fromarray(frame)
+            if img.width != args.width:
+                img = img.resize((args.width, round(img.height * args.width / img.width)), Image.LANCZOS)
+            thumbs[i] = img
     frames = [f for f in wanted if f in thumbs]
     if not frames:
         sys.exit("no frames decoded")

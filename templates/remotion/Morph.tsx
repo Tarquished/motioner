@@ -10,6 +10,9 @@
  *   The rest of the incoming scene may appear only around/after the carrier (stagger outward
  *   from it, late in the morph), never already sitting behind it.
  * Use `handoff()` in both scenes so the three states can never overlap.
+ *   Carried content that animates must be rendered with the CURRENT frame (never a snapshot of the
+ *   start/end frame), and scenes must use the same shadowOf()/decorations as the carrier surfaces,
+ *   or small things jump on the handoff frame.
  */
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {continueRender, delayRender} from 'remotion';
@@ -27,6 +30,7 @@ export type Surface = {
 	fill: string; // #rrggbb
 	rot?: number; // degrees, around the rect centre
 	elevation?: number; // 0..1 shadow strength
+	shadowColor?: string; // #rrggbb, default near-black; use the object's own colour for a glow
 	border?: {width: number; color: string};
 	/** Content drawn inside the surface, laid out at the surface's own size (rect.w x rect.h). */
 	content?: React.ReactNode;
@@ -48,6 +52,8 @@ type CarrierProps = {
 	colorWindow?: [number, number];
 	/** Extra per-frame styling (e.g. a subtle lift). */
 	style?: React.CSSProperties;
+	/** Leave unset: carriers stack by render order like everything else. A z-index here lifts the
+	 *  carrier over overlays drawn later (a pointer, a ripple) and they vanish on the handoff frame. */
 	zIndex?: number;
 	/** Stagger inside a group: hold the start state for `delay` frames. The carrier still exists
 	 *  from `start`, so the element is never missing (never stagger by shifting `start`). */
@@ -57,11 +63,17 @@ type CarrierProps = {
 	lift?: number;
 };
 
-const shadowOf = (e0: number) => {
+/**
+ * The one shadow formula for carriers AND the scenes they hand over to. Style every source and
+ * target with shadowOf() and the same elevation/colour as the carrier's from/to surface, or the
+ * shadow (or a coloured glow) snaps on the handoff frame.
+ */
+export const shadowOf = (e0: number, color = '#0F141E') => {
 	const e = Math.min(1.4, e0);
-	return (
-		e <= 0 ? 'none' : `0 ${Math.round(2 + 22 * e)}px ${Math.round(6 + 48 * e)}px rgba(15, 20, 30, ${(0.1 + 0.18 * e).toFixed(3)})`
-	);
+	if (e <= 0) return 'none';
+	const h = color.replace('#', '');
+	const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+	return `0 ${(2 + 22 * e).toFixed(1)}px ${(6 + 48 * e).toFixed(1)}px rgba(${r}, ${g}, ${b}, ${(0.1 + 0.18 * e).toFixed(3)})`;
 };
 
 /**
@@ -82,7 +94,7 @@ export const MorphCarrier: React.FC<CarrierProps> = ({
 	contentIn = [0.55, 1],
 	colorWindow = [0, 1],
 	style,
-	zIndex = 50,
+	zIndex,
 	delay = 0,
 	lift = 0,
 }) => {
@@ -126,7 +138,7 @@ export const MorphCarrier: React.FC<CarrierProps> = ({
 				height: r.h,
 				borderRadius: r.r,
 				background: fill,
-				boxShadow: shadowOf(elev),
+				boxShadow: shadowOf(elev, mixColor(from.shadowColor ?? '#0F141E', to.shadowColor ?? '#0F141E', t).replace(/rgb\((\d+), (\d+), (\d+)\)/, (_, r, g, b) => '#' + [r, g, b].map((v) => Number(v).toString(16).padStart(2, '0')).join(''))),
 				outline: bw > 0.05 ? `${bw}px solid ${bc}` : undefined,
 				outlineOffset: bw > 0.05 ? -bw : undefined,
 				overflow: 'hidden',

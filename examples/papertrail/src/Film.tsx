@@ -227,9 +227,8 @@ const Expand: React.FC<{f: number}> = ({f}) => {
 				from={{rect: CARD, fill: C.card, elevation: 0.55, content: <CardSubtitle />}}
 				to={{rect: FULL, fill: C.card, elevation: 0}}
 				contentOut={[0, 0.25]}
-				zIndex={60}
 			/>
-			<MorphCarrier {...common} from={{rect: TITLE_CARD, fill: C.card, content: <CardTitle />}} to={{rect: TITLE_DETAIL, fill: C.card}} contentOut={[2, 3]} zIndex={61} />
+			<MorphCarrier {...common} from={{rect: TITLE_CARD, fill: C.card, content: <CardTitle />}} to={{rect: TITLE_DETAIL, fill: C.card}} contentOut={[2, 3]} />
 			{LABELS.map((label, k) => (
 				<MorphCarrier
 					key={k}
@@ -238,8 +237,7 @@ const Expand: React.FC<{f: number}> = ({f}) => {
 					from={{rect: CARD_ROW(k), fill: C.card, content: <Row frame={f} label={label} checkedAt={k < 2 ? checkedAt(k) : null} />}}
 					to={{rect: DETAIL_ROW(k), fill: C.card}}
 					contentOut={[2, 3]}
-					zIndex={62}
-				/>
+					/>
 			))}
 		</AbsoluteFill>
 	);
@@ -299,10 +297,12 @@ const Detail: React.FC<{f: number}> = ({f}) => {
 					boxShadow: `0 ${18 - 10 * press}px 40px rgba(51,85,255,0.35)`,
 				}}
 			>
-				Share
-				<svg width={44} height={44} viewBox="0 0 24 24">
-					<path d="M4 12 L20 4 L15 20 L12 13 Z" fill="#fff" />
-				</svg>
+				<span style={{opacity: 1 - prog(f, TL.flood.start - 8, TL.flood.start, ease.in), transform: `scale(${1 - 0.2 * prog(f, TL.flood.start - 8, TL.flood.start, ease.in)})`, display: 'inline-flex', alignItems: 'center', gap: 18}}>
+					Share
+					<svg width={44} height={44} viewBox="0 0 24 24">
+						<path d="M4 12 L20 4 L15 20 L12 13 Z" fill="#fff" />
+					</svg>
+				</span>
 			</div>
 		</AbsoluteFill>
 	);
@@ -457,7 +457,7 @@ export const Film: React.FC = () => {
 				taps={[TL.detail.tap3, TL.detail.shareTap]}
 			/>
 		
-			<FloodReveal frame={f} start={TL.flood.start} end={TL.flood.end} origin={{x: 540, y: 1655}} r0={62} width={W} height={H}>
+			<FloodReveal frame={f} start={TL.flood.start} end={TL.flood.end} origin={{x: 540, y: 1655}} r0={8} width={W} height={H}>
 				<Shared f={f} />
 			</FloodReveal>
 			<Touch
