@@ -7,6 +7,7 @@
 // (measured +42.7 ms, every cue 2.5 frames late at 60 fps) and the audio longer than the video.
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const CONFIG = {
@@ -18,7 +19,7 @@ const CONFIG = {
 	mix: 'public/audio/mix.wav',
 	transitions: 'transitions.json', // [{name,start,end,kind}] for transition_review.py
 	out: 'out/film.mp4',
-	skillScripts: process.env.MOTIONER_SCRIPTS ?? path.join(process.env.HOME ?? process.env.USERPROFILE ?? '', '.claude/skills/motioner/scripts'),
+	skillScripts: process.env.MOTIONER_SCRIPTS ?? path.join(os.homedir(), '.claude', 'skills', 'motioner', 'scripts'),
 	concurrency: 6,
 	gl: 'angle', // GPU through ANGLE; use 'swangle' if the GPU path fails
 	extraRenderArgs: [], // e.g. ['--scale', '2'] for a supersampled master
