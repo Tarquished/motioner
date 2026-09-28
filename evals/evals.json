@@ -1,30 +1,35 @@
 {
-  "skill_name": "motioner",
-  "evals": [
-    {
-      "id": 1,
-      "prompt": "Use motioner to create a finished 14-second vertical product film for a fictional notes app called Papertrail. 1080x1920, 60 fps, H.264 MP4 with audio. Show scattered sticky notes merging into one clear card, the card opening into a detail screen where a task is checked, a Share button that opens the sharing scene, and the logo. Transitions must be seamless morphs, not fades. Find music and SFX online. No voice.",
-      "expected_output": "A real MP4 with exactly the planned frames; at least three different morph recipes (converge, container expand with child carriers, flood or path morph); transition_review sheets with a written verdict per boundary and no POP/STUTTER/HITCH; a cue sheet built from the timeline with whoosh peaks on measured fastest frames; sync_check in the delivered file within half a frame; music 8-10 LU under the mix; asset manifest. Compare with examples/papertrail."
-    },
-    {
-      "id": 2,
-      "prompt": "Use motioner to fix this Remotion film: the card-to-detail transition shows two cards for a moment, the headline flickers with a ghost of the old text, and some sound effects are early while others are late. Keep everything else. Deliver the fixed MP4 and say what caused each problem. Also, three dots inside the card sit still while it grows and then suddenly start moving when it fills the screen.",
-      "expected_output": "Diagnosis in the terms of the carrier contract (source/target drawn during the morph, crossfaded content, travelling element left in container content) with frame numbers from transition_review; fix via handoff()/MorphCarrier; SFX causes found with sfx_scan (lead-ins, wrong alignment) and sync_check (constant offset from renderer audio encode vs per-cue errors); re-render; before/after evidence. The dots: carried content was a frozen snapshot; fixed by rendering it live, confirmed by no HANDOFF-JUMP and a zoomed crop across the end frame."
-    },
-    {
-      "id": 3,
-      "prompt": "Use motioner to make a 20-second 1920x1080 tutorial for a fictional learning app. Five steps; one click opens a detail view that must not exist before the click. One chapter is cool blue and the next warm coral: bridge them without a muddy or arbitrary colour flash. At least two genuine shared-element or shape morphs, kinetic type, rich SFX from the internet, music cut on bar lines ending on the song's real ending.",
-      "expected_output": "Interaction before/contact/after frames; colour bridge mixed in OKLab with a motivated carrier; per-boundary verdicts; beat_grid output used for cuts; music edit with crossfades on bar lines; cue sheet and sync_check; verify_video PASS; honest statement of what was measured vs heard."
-    },
-    {
-      "id": 4,
-      "prompt": "Use motioner for a 6-second logo reveal: a circle becomes our logo mark (SVG provided), then the wordmark types in, with a satisfying sound on the landing and a whoosh on the move. 1080x1080, 30 fps.",
-      "expected_output": "PathMorph with a clean 50% frame (checked on the sheet), wordmark with locked layout, whoosh peak on the measured fastest frame, landing hit aligned by attack, sync within half a frame (17 ms at 30 fps)."
-    },
-    {
-      "id": 5,
-      "prompt": "Design a static square poster for a fictional music festival. Export a PNG. Do not animate it.",
-      "expected_output": "Motioner should not trigger for a static image request."
-    }
-  ]
+ "skill_name": "motioner",
+ "evals": [
+  {
+   "id": 1,
+   "prompt": "Use motioner to create a finished 14-second vertical product film for a fictional notes app called Papertrail. 1080x1920, 60 fps, H.264 MP4 with audio. Show scattered sticky notes merging into one clear card, the card opening into a detail screen where a task is checked, a Share button that opens the sharing scene, and the logo. Transitions must be seamless morphs, not fades. Find music and SFX online. No voice.",
+   "expected_output": "A real MP4 with exactly the planned frames; at least three different morph recipes (converge, container expand with child carriers, flood or path morph); transition_review sheets with a written verdict per boundary and no POP/STUTTER/HITCH; a cue sheet built from the timeline with whoosh peaks on measured fastest frames; sync_check in the delivered file within half a frame; music 8-10 LU under the mix; asset manifest. Compare with examples/papertrail."
+  },
+  {
+   "id": 2,
+   "prompt": "Use motioner to fix this Remotion film: the card-to-detail transition shows two cards for a moment, the headline flickers with a ghost of the old text, and some sound effects are early while others are late. Keep everything else. Deliver the fixed MP4 and say what caused each problem. Also, three dots inside the card sit still while it grows and then suddenly start moving when it fills the screen.",
+   "expected_output": "Diagnosis in the terms of the carrier contract (source/target drawn during the morph, crossfaded content, travelling element left in container content) with frame numbers from transition_review; fix via handoff()/MorphCarrier; SFX causes found with sfx_scan (lead-ins, wrong alignment) and sync_check (constant offset from renderer audio encode vs per-cue errors); re-render; before/after evidence. The dots: carried content was a frozen snapshot; fixed by rendering it live, confirmed by no HANDOFF-JUMP and a zoomed crop across the end frame."
+  },
+  {
+   "id": 3,
+   "prompt": "Use motioner to make a 20-second 1920x1080 tutorial for a fictional learning app. Five steps; one click opens a detail view that must not exist before the click. One chapter is cool blue and the next warm coral: bridge them without a muddy or arbitrary colour flash. At least two genuine shared-element or shape morphs, kinetic type, rich SFX from the internet, music cut on bar lines ending on the song's real ending.",
+   "expected_output": "Interaction before/contact/after frames; colour bridge mixed in OKLab with a motivated carrier; per-boundary verdicts; beat_grid output used for cuts; music edit with crossfades on bar lines; cue sheet and sync_check; verify_video PASS; honest statement of what was measured vs heard."
+  },
+  {
+   "id": 4,
+   "prompt": "Use motioner for a 6-second logo reveal: a circle becomes our logo mark (SVG provided), then the wordmark types in, with a satisfying sound on the landing and a whoosh on the move. 1080x1080, 30 fps.",
+   "expected_output": "PathMorph with a clean 50% frame (checked on the sheet), wordmark with locked layout, whoosh peak on the measured fastest frame, landing hit aligned by attack, sync within half a frame (17 ms at 30 fps)."
+  },
+  {
+   "id": 6,
+   "prompt": "/motioner Make a 15 second 1920x1080 brand reel for a small design studio called Kiln (warm, playful). No voice. Surprise me, it should feel like the best motion reels made in code.",
+   "expected_output": "A concept written first (seed object, 5-8 chapters with one visible verb each, a becomes-chain with no plain cuts outside a montage, a bookend); tempo chosen and every chapter change on a beat; kinetic type where words act out their meaning; colour fields per chapter; HUD chrome; synthesized music and SFX via synth_score.py with a silence before the drop and a logo hit; verify PASS, all cues in sync; per-boundary verdicts that name expected flood/montage flags; a whole-film sheet compared against references/reference-films.md."
+  },
+  {
+   "id": 5,
+   "prompt": "Design a static square poster for a fictional music festival. Export a PNG. Do not animate it.",
+   "expected_output": "Motioner should not trigger for a static image request."
+  }
+ ]
 }

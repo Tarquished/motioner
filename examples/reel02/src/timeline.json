@@ -1,0 +1,15 @@
+{
+	"fps": 60,
+	"width": 1920,
+	"height": 1080,
+	"durationInFrames": 960,
+	"bpm": 120,
+	"seed": {"appear": 8, "contacts": [30, 60, 90, 105], "flood": [120, 146]},
+	"idea": {"words": [124, 146, 176, 206], "dotPop": 214, "shrink": [220, 238], "out": [226, 246], "travel": [240, 258]},
+	"motion": {"flood": [258, 286], "caption": 264, "split": [266, 288], "railStart": 292, "railStep": 5, "railDur": 36, "converge": [344, 360]},
+	"shape": {"flood": [360, 386], "grow": [364, 390], "morphs": [390, 420, 450], "morphDur": 18, "zoom": [462, 494]},
+	"rhythm": {"drops": [484, 510, 540], "dropDur": 20, "dotPop": 552, "bars": 496, "wipe": [572, 600], "travel": [572, 596]},
+	"prompt": {"caption": 606, "pill": [596, 616], "type": 624, "cursor": [664, 688], "press": 692, "collapse": [698, 712], "launch": [706, 720]},
+	"montage": {"start": 720, "step": 15, "count": 8},
+	"logo": {"close": [840, 858], "rise": 858, "travel": [854, 880], "tagline": 884, "rule": [890, 912], "footer": 896, "pulses": [900, 930]}
+}

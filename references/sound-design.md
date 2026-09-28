@@ -1,10 +1,37 @@
 # Sound design: the right sound, on the right frame
 
-Read before sourcing any audio and before building the mix. Scripts: `sfx_scan.py`, `beat_grid.py`, `build_mix.py`, `sync_check.py`.
+Read before making or sourcing any audio and before building the mix. Scripts: `synth_score.py`, `sfx_scan.py`, `beat_grid.py`, `build_mix.py`, `sync_check.py`.
 
-Most "wrong SFX" problems are one of four things: the wrong **shape** for the action (a slow rustle on a hard landing), a **lead-in** that makes it late, placement by **file start** instead of by attack/peak, or a **mux/encode offset**. Each has a measurement; use them before and after placing.
+## 0. Default: write the sound in code (`synth_score.py`)
 
-## 1. Map every sound to a visible event
+The benchmark films credit "every frame and every sound written in code", and their spectrograms show it: pads and plucks in one key, a kick on every beat frame, noise risers whose top is the reveal, whooshes whose loudness follows the picture's speed, a tick per UI element, a full silence before the drop. Synthesized sounds fit by construction (length, key, envelope, alignment), so the usual "wrong SFX" problems below cannot happen. Use found audio only when the brief asks for a real track, real foley or a voice.
+
+```
+python scripts/make_score.py                       # per project: timeline -> audio/score.json
+python scripts/synth_score.py audio/score.json --out audio/synth
+python scripts/build_mix.py audio/synth/cues.json --out public/audio/mix.wav
+python scripts/sync_check.py out/film.mp4 public/audio/mix.cues.json --root audio/synth
+```
+(`build.mjs` runs all of it when `makeScore` is set.) Score format and sound types are in the script's header. Map events like the benchmark does:
+
+| Picture | Sound (`type`) | Frame |
+|---|---|---|
+| The seed appears / an element pops in | `pop` (degree in the key) | first visible frame |
+| Each bounce, each item of a set arriving | `pluck` or `pop` climbing the chord (degrees 0, 2, 4, 7) | contact frame |
+| The drop (first flood, big reveal) | `riser` ending 5 frames early (inside the silence gap), `impact` on the frame; the section is `"drop": true` | flood start |
+| A flood's edge, a camera move, a carrier flight | `whoosh` with `frame` = measured fastest frame, `frames` = move length; or `start` + `speed` from `speedCurve()` so the envelope is the move | fastest frame |
+| A word slamming in | `thud` (low) | landing frame |
+| A shape changing | `stab` (chord) | morph start (on the beat) |
+| Typing | `type` with `frames` = `typeFrames()` of the same text | each character |
+| Click / press | `click`, then `burst` 2 frames later if something pops | contact |
+| Montage cut | `glitch` on alternate cuts (the `montage` kit has stabs on every half beat) | cut frame |
+| Logo lands | `impact` + `sub`; a `chime` on the tagline; soft `pop` pulses on later beats | landing frame |
+
+Levels: `under_mix_lu` 6 to 8 for a synthesized bed (the music is part of the design, as in the references), effects still clearly over it (build_mix reports each cue's margin). Pitched sounds use the score's key so nothing clashes. Repeated small sounds get three takes automatically; still space them at least 4 frames apart.
+
+Most "wrong SFX" problems with found audio are one of four things: the wrong **shape** for the action (a slow rustle on a hard landing), a **lead-in** that makes it late, placement by **file start** instead of by attack/peak, or a **mux/encode offset**. Each has a measurement; use them before and after placing.
+
+## 1. Map every sound to a visible event (found audio)
 
 Write the sound map from the timeline, event by event:
 
@@ -93,7 +120,7 @@ Roles set default levels and music ducking; adjust with `gain_db` per cue. Aim (
 python scripts/sync_check.py out/film.mp4 public/audio/mix.cues.json --root .
 ```
 
-Each cue is found by cross-correlation near its planned time and its alignment point is compared with the event frame. Every cue should be within half a frame (8 ms at 60 fps, 17 ms at 30 fps; default tolerance 12 ms). A constant offset on all cues means the mux/encode is wrong, not the cue sheet. `MASKED?` means the cue barely exists in the mix (too quiet, or buried under a simultaneous louder cue): raise it, move it, or drop it. Two cues flagged at the same frame usually reveal two events competing for attention: fix the picture timing.
+Each cue is found by cross-correlation near its planned time (for a sound repeated nearby, such as typing, the search stays within 45 % of the gap to its next copy so it cannot lock onto a neighbour) and its alignment point is compared with the event frame. Every cue should be within half a frame (8 ms at 60 fps, 17 ms at 30 fps; default tolerance 12 ms). A constant offset on all cues means the mux/encode is wrong, not the cue sheet. `MASKED?` means the cue barely exists in the mix (too quiet, or buried under a simultaneous louder cue): raise it, move it, or drop it. Two cues flagged at the same frame usually reveal two events competing for attention: fix the picture timing.
 
 ## Honest listening
 

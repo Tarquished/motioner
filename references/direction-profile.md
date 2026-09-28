@@ -4,6 +4,10 @@ Use when a brief asks for a polished, lively product film and leaves direction o
 
 ## Defaults that have worked
 
+- **A seed and a journey** (from the benchmark films, see [reference films](reference-films.md)): open on an empty frame and one accent-coloured dot or the brand's atom; let it become every scene; end with it as part of the logo.
+- **Colour fields per chapter** from a palette of four (dark, warm paper, one hot accent, one electric cool colour), switched by floods, irises and band wipes on the beat.
+- **Big, confident type**: extended black grotesk for statements, one word per beat when it matters, an italic serif for the human line, a letterspaced mono for chrome (crop marks, chapter labels, timecode, BPM).
+
 - **Open with the product's identity** in one or two beats (logo or hero moment), then go straight into a real interaction. Never open on a static title card.
 - **The real UI is the hero.** Rebuild it as animatable components (not screenshots), full-bleed, facing the viewer, with depth from layering, light and camera, not from rotating every panel in 3D.
 - **Every feature is an event**: challenge or state, an action (tap, type, drag) and a visible result. A caption claiming a feature is not a demo.
@@ -25,6 +29,8 @@ Use when a brief asks for a polished, lively product film and leaves direction o
 - Caption lines that re-wrap while animating; letters or objects that stray at the frame edges after a burst.
 - Choppy entrances ("patah-patah"): hard-cornered bounce eases or keyed moves that stop and restart.
 - Em dashes, middle dots as separators and slogan-like AI phrasing in on-screen copy (unless the brand uses them).
+- "Posters joined by wipes": a big static headline plus one spinning 3D object, held for seconds and replaced by a panel wipe. The benchmark comparison film shows this is what makes a film look generic next to one where every scene transforms.
+- Small type floating in a large empty frame; a whole chapter where only a caption changes.
 - A fabricated logo or identity presented as real.
 
 ## Do not freeze an old brief into the skill

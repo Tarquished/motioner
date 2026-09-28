@@ -25,7 +25,7 @@ const CONFIG = {
 	mix: 'public/audio/mix.wav',
 	transitions: 'transitions.json', // [{name,start,end,kind}] for transition_review.py
 	out: 'out/film.mp4',
-	skillScripts: process.env.MOTIONER_SCRIPTS ?? path.join(os.homedir(), '.claude', 'skills', 'motioner', 'scripts'),
+	skillScripts: process.env.MOTIONER_SCRIPTS ?? path.resolve('../../scripts'),
 	concurrency: 6,
 	gl: 'angle', // GPU through ANGLE; use 'swangle' if the GPU path fails
 	extraRenderArgs: [], // e.g. ['--scale', '2'] for a supersampled master

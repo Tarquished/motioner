@@ -1,0 +1,15 @@
+[
+ {"name": "seed-bounce", "start": 6, "end": 118, "kind": "morph"},
+ {"name": "seed-floods-to-idea", "start": 114, "end": 150, "kind": "seamless", "handoffs": [120]},
+ {"name": "small-shrinks-to-dot", "start": 214, "end": 262, "kind": "morph", "handoffs": [240, 258]},
+ {"name": "dot-irises-to-paper-and-splits", "start": 254, "end": 296, "kind": "seamless", "handoffs": [258, 266]},
+ {"name": "rails-race", "start": 288, "end": 346, "kind": "morph"},
+ {"name": "converge-and-blue-flood", "start": 340, "end": 392, "kind": "seamless", "handoffs": [360, 364]},
+ {"name": "shape-morphs", "start": 386, "end": 472, "kind": "morph"},
+ {"name": "zoom-into-square", "start": 458, "end": 500, "kind": "zoom"},
+ {"name": "beat-drops", "start": 478, "end": 560, "kind": "morph"},
+ {"name": "band-wipe-dot-to-button", "start": 566, "end": 620, "kind": "seamless", "handoffs": [572, 596]},
+ {"name": "press-and-launch", "start": 686, "end": 724, "kind": "morph"},
+ {"name": "montage", "start": 716, "end": 842, "kind": "cut"},
+ {"name": "iris-close-to-logo", "start": 836, "end": 900, "kind": "seamless", "handoffs": [858]}
+]

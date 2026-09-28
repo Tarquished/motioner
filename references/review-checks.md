@@ -24,7 +24,7 @@ then sound:
  {"name": "hard cut on beat 4", "start": 780, "end": 790, "kind": "cut"}]
 ```
 
-`kind`: morph, seamless, whip, zoom, cut, flash (cut/flash/whip allow one intended spike). For every morph add the exact carrier frames, e.g. `"handoffs": [504, 540]`, so jumps on those frames are reported as HANDOFF-JUMP.
+`kind`: morph, seamless, whip, zoom, cut, flash (cut/flash/whip allow one intended spike). Give a beat montage its own window with `kind: cut`; every half-beat cut in it will be listed as POP/COLORJUMP, which is expected: check instead that each cut lands on its beat and has its own hit. For every morph add the exact carrier frames, e.g. `"handoffs": [504, 540]`, so jumps on those frames are reported as HANDOFF-JUMP.
 
 ## Reading the flags
 
@@ -67,6 +67,17 @@ Also read `motion events ... start-end@peak`: every fast move with its fastest f
 
 Write per boundary: `name (frames): GOOD/WEAK/BROKEN. What you saw, which frames, cause, fix.` Re-verdict after the fix.
 
+## Expected flags (say so in the verdict)
+
+- A flood, iris or band wipe replaces the whole frame's colour in 4 to 8 frames: COLORJUMP on its middle frames is the design, not a glitch. Look for what matters instead: the edge's curve (no pop), text of the next scene entering only behind the edge, the carrier's colour matching the flood on its first frame.
+- A push-through changes almost every pixel at the swap: one POP there is expected if the zoomed element's fill already equals the new background on the frame before the swap.
+- A beat pulse (equalizer, dot pulse) raises a small local jump on the beat: give it a 2-frame attack so it is a pulse, not a one-frame POP.
+- BLANK on the first frames of a film that opens on an empty frame before its seed appears.
+
+## Creative check (against the benchmark)
+
+On the whole-film sheet, answer in writing: What is the seed and where does it return? What does each chapter become? Are chapter changes on beats? Is the frame filled (statements 40 to 60 % of the width, objects big enough to read at phone size)? Does each chapter own a field colour? Is any word just sitting there instead of acting out its meaning? Compare one sheet side by side with a film from [reference films](reference-films.md): if yours looks emptier, smaller or slower, fix that before polishing.
+
 ## Whole-film review (muted)
 
 On a contact sheet every 0.2 to 0.3 s at phone width: dead stretches (8+ nearly identical thumbnails), two focal events at once, unreadable captions at phone size, crowded frames, repetitive transitions, missing brand/logo, anything in platform UI zones (top 250 px and bottom 400 px on 9:16 social video).
@@ -74,9 +85,9 @@ On a contact sheet every 0.2 to 0.3 s at phone width: dead stretches (8+ nearly 
 ## Sound checks
 
 - `sync_check.py` on the delivered file: every cue within half a frame; no constant offset; investigate every `MASKED?`.
-- `build_mix.py` report: music 8 to 10 LU under the mix, no warnings about masked cues, true peak at or under -1.5 dBTP, limiting under 4 dB.
+- `build_mix.py` report: music 8 to 10 LU under the mix (6 to 8 for a synthesized bed), no warnings about masked cues, true peak at or under -1.5 dBTP, limiting under 4 dB.
 - Cue coverage: every event in the timeline that moves or changes state has a cue or a deliberate silence.
-- Variation: no single sound used for more than about a third of the cues without pitch/take changes.
+- Variation: no single sound used for more than about a third of the cues without pitch/take changes; build_mix warns about flams (the same take twice within 60 ms).
 - Ending: the final visual hit is on the music's own ending or a designed fade, never a chop.
 
 ## Delivery

@@ -14,8 +14,8 @@ Judge the **encoded MP4**. Record agent, model, prompt id, date, output path. Ea
 | Text | No ghost text, letter soup, re-wrapping or clipped captions |
 | Interaction | Every click hits its target; result absent before contact, visible right after |
 | SFX sync | `sync_check.py` on the delivered file: all cues within half a frame, no constant offset, every MASKED? resolved |
-| SFX fit | Candidates screened with `sfx_scan.py`; no riser/slow swell on hard contacts; whoosh peaks on measured fastest frames |
-| Mix | Music 8 to 10 LU under the mix; no masked-cue warnings; true peak <= -1.5 dBTP; limiting <= 4 dB |
+| SFX fit | Synthesized per event with `synth_score.py` (or found candidates screened with `sfx_scan.py`); no riser/slow swell on hard contacts; whoosh peaks on measured fastest frames; no flams |
+| Mix | Music 8 to 10 LU under the mix (6 to 8 for a synthesized bed); no masked-cue warnings; true peak <= -1.5 dBTP; limiting <= 4 dB |
 | Music edit | Cuts on bar lines with crossfades; the film ends on the song's own ending or a designed fade |
 | Assets | Manifest with source/licence for every external file; nothing fabricated as an official logo |
 | Honesty | States what was measured vs seen vs heard; unheard audio is called unverified |
@@ -24,6 +24,9 @@ Judge the **encoded MP4**. Record agent, model, prompt id, date, output path. Ea
 
 | Category | Judge |
 |---|---|
+| Concept | A seed that keeps transforming; every chapter born out of the last; a bookend; compare with references/reference-films.md |
+| Rhythm | Chapter changes on beats; acceleration before the logo; silence before the drop; end card held |
+| Type that acts | Important words behave like their meaning; statements big enough at phone size |
 | Morph creativity | Recipes fit what the scenes share; varied across the film |
 | Seamlessness | The eye rides one object across every boundary |
 | Motion feel | Curves suit their role; anticipation, settle, secondary motion; nothing stiff or floaty |

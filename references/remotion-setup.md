@@ -9,15 +9,17 @@ npm init -y
 npm i remotion @remotion/cli @remotion/paths @remotion/shapes @remotion/motion-blur @remotion/transitions \
       @remotion/layout-utils react react-dom flubber
 npm i -D typescript @types/react
-# fonts, e.g.
-npm i @fontsource-variable/bricolage-grotesque @fontsource-variable/inter-tight
+# fonts: an extended grotesk for statements, an italic serif for the human line, a mono for chrome
+npm i @fontsource-variable/archivo @fontsource/instrument-serif @fontsource/jetbrains-mono
+# (import '@fontsource-variable/archivo/wdth.css' for the width axis: fontStretch '125%', canvas "800 expanded 150px 'Archivo Variable'")
+# optional real 3D (voxel fields, particle galaxies, chrome blobs): npm i @remotion/three three @react-three/fiber
 ```
 
 Keep all Remotion packages on the exact same version. Copy the kit:
 
 ```
-src/motioner/motion.ts  Morph.tsx  transitions.tsx  flubber.d.ts   (from templates/remotion)
-scripts/build.mjs                                                  (edit CONFIG)
+src/motioner/motion.ts  Morph.tsx  transitions.tsx  creative.tsx  flubber.d.ts   (from templates/remotion)
+scripts/build.mjs                                                                (edit CONFIG)
 ```
 
 Layout:
@@ -27,7 +29,8 @@ src/timeline.json      every event frame: the one clock (picture, cues, review p
 src/Root.tsx           <Composition id="Film"> with audio and "FilmSilent" without, same props
 src/Film.tsx           scenes as functions of `frame`
 transitions.json       review plan for transition_review.py
-scripts/make_cues.py   timeline -> audio/cues.json
+scripts/make_score.py  timeline -> audio/score.json (synth_score.py input; see examples/reel02)
+scripts/make_cues.py   timeline -> audio/cues.json (only when using found audio)
 research/              downloaded candidates + manifest (not rendered)
 public/audio/mix.wav   written by build_mix.py
 ```
@@ -56,7 +59,9 @@ const FontGate: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 ```
 
-Wrap the film in it. `LetterMorph` also waits for `document.fonts.ready` before measuring.
+Wrap the film in it. `LetterMorph` also waits for `document.fonts.ready` before measuring. For a variable width axis, load the exact variant you draw (`"800 expanded 150px 'Archivo Variable'"`).
+
+Kinetic type needs letter positions you control: measure once with `measureWidths(text, font, letterSpacingPx)` from `creative.tsx` (canvas, same font engine as the DOM) and place every letter absolutely at those offsets. Then a letter can drop, stretch or fly into a dot without the line reflowing, and the word's final dot position is a number a carrier can travel to.
 
 ## Determinism
 

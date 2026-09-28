@@ -109,7 +109,14 @@ def main():
     raw_mono = full.mean(1) if full.ndim == 2 else full
     mono_by_cut = {250: bandpass(raw_mono, 250)}
     cache, results, bad = {}, [], 0
-    for c in cues:
+    # repeated copies of one sound (typing, ticks) must not be matched to their neighbours:
+    # search at most 45 % of the gap to the nearest other cue that uses the same file
+    same_gap = []
+    for i, c in enumerate(cues):
+        gaps = [abs(o["frame"] - c["frame"]) / fps for j, o in enumerate(cues)
+                if j != i and o["file"] == c["file"] and o.get("rate", 1.0) == c.get("rate", 1.0) and o["frame"] != c["frame"]]
+        same_gap.append(min(gaps) if gaps else None)
+    for ci, c in enumerate(cues):
         f = c["file"]
         path = Path(f) if Path(f).is_absolute() else root / f
         if not path.is_file() and isinstance(data, dict):
@@ -143,8 +150,11 @@ def main():
             expected_needle_start = event * SR - (point - a)
         else:
             expected_needle_start = event * SR - (point - a)
-        lo = int(max(0, expected_needle_start - args.search_ms / 1000 * SR))
-        hi = int(min(len(mono), expected_needle_start + args.search_ms / 1000 * SR + len(needle)))
+        search_s = args.search_ms / 1000
+        if same_gap[ci]:
+            search_s = min(search_s, 0.45 * same_gap[ci])
+        lo = int(max(0, expected_needle_start - search_s * SR))
+        hi = int(min(len(mono), expected_needle_start + search_s * SR + len(needle)))
         if hi - lo <= len(needle) or np.abs(needle).max() == 0:
             results.append({"frame": c["frame"], "label": c.get("label", ""), "status": "OUTSIDE"})
             bad += 1
