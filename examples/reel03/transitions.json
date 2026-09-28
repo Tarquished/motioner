@@ -1,12 +1,78 @@
 [
- {"name": "particles-write-the-word", "start": 6, "end": 118, "kind": "morph"},
- {"name": "letters-fall-t-grows", "start": 116, "end": 168, "kind": "morph"},
- {"name": "bar-becomes-field-and-timeline", "start": 164, "end": 232, "kind": "seamless", "handoffs": [166, 212]},
- {"name": "playhead-writes-TIMING", "start": 230, "end": 300, "kind": "morph"},
- {"name": "line-becomes-wave-SOUND", "start": 296, "end": 360, "kind": "seamless", "handoffs": [300]},
- {"name": "wave-floods-coral", "start": 430, "end": 490, "kind": "seamless", "handoffs": [480]},
- {"name": "lens-reads", "start": 486, "end": 640, "kind": "morph"},
- {"name": "portal-to-scene-wall", "start": 626, "end": 732, "kind": "zoom"},
- {"name": "words-on-the-wall", "start": 716, "end": 842, "kind": "cut"},
- {"name": "scenes-shrink-and-fly-into-word", "start": 836, "end": 984, "kind": "seamless", "handoffs": [880]}
+ {
+  "name": "particles-write-the-word",
+  "start": 6,
+  "end": 118,
+  "kind": "morph"
+ },
+ {
+  "name": "letters-fall-t-grows",
+  "start": 116,
+  "end": 168,
+  "kind": "morph"
+ },
+ {
+  "name": "bar-becomes-field-and-timeline",
+  "start": 164,
+  "end": 232,
+  "kind": "seamless",
+  "handoffs": [
+   166,
+   212
+  ]
+ },
+ {
+  "name": "playhead-writes-TIMING",
+  "start": 230,
+  "end": 300,
+  "kind": "morph"
+ },
+ {
+  "name": "line-becomes-wave-SOUND",
+  "start": 296,
+  "end": 360,
+  "kind": "seamless",
+  "handoffs": [
+   300
+  ]
+ },
+ {
+  "name": "wave-floods-coral",
+  "start": 430,
+  "end": 490,
+  "kind": "seamless",
+  "handoffs": [
+   480
+  ]
+ },
+ {
+  "name": "O-falls-and-morphs-MORPH",
+  "start": 478,
+  "end": 620,
+  "kind": "morph"
+ },
+ {
+  "name": "portal-to-scene-wall",
+  "start": 612,
+  "end": 732,
+  "kind": "zoom",
+  "handoffs": [
+   636
+  ]
+ },
+ {
+  "name": "words-on-the-wall",
+  "start": 716,
+  "end": 842,
+  "kind": "cut"
+ },
+ {
+  "name": "scenes-shrink-and-fly-into-word",
+  "start": 836,
+  "end": 984,
+  "kind": "seamless",
+  "handoffs": [
+   880
+  ]
+ }
 ]

@@ -1,8 +1,10 @@
 import React from 'react';
 import {AbsoluteFill} from 'remotion';
-import {KineticWord, LensPortal} from './motioner/creative';
-import {clamp01, ease, lerp, mixColor, poseTrack, prog, rand} from './motioner/motion';
+import {interpolate as flubberInterpolate} from 'flubber';
+import {KineticWord, landingSquash} from './motioner/creative';
+import {clamp01, ease, lerp, mixColor, prog, rand} from './motioner/motion';
 import {C, displayStyle, layout, MONO, SERIF} from './shared';
+import MG from './morph_glyphs.json';
 import TLjson from './timeline.json';
 import {BL, Letter, SolidWord, WORD, WordParticles, wordInfo, WSIZE} from './word';
 
@@ -396,99 +398,162 @@ export const Sound: React.FC<{f: number}> = ({f}) => {
 	);
 };
 
-/* ═══════════ 04 IDEA: the o floats up as a lens and reads the sentence ═══════════ */
-const L1 = 'describe the video';
-const L2 = 'in your head.';
-const LINE_SIZE = 196;
-const L1_TOP = 250;
-const L2_TOP = 520;
-const LENS_R = 150;
-const serif: React.CSSProperties = {fontFamily: SERIF, fontStyle: 'italic', fontSize: LINE_SIZE, lineHeight: `${LINE_SIZE * 1.1}px`, color: C.ink, whiteSpace: 'nowrap'};
-let SERIF_W: [number, number] | null = null;
-const serifWidths = () => {
-	if (!SERIF_W) {
-		const c = document.createElement('canvas').getContext('2d')!;
-		c.font = `italic 400 ${LINE_SIZE}px 'Instrument Serif'`;
-		SERIF_W = [c.measureText(L1).width, c.measureText(L2).width];
-	}
-	return SERIF_W;
+/* ═══════════ 04 MORPH: the O falls back and becomes every other letter ═══════════
+ * The O that the flood threw out of SOUND falls back into the frame and bounces. Copies of it
+ * hop out one by one and morph in flight into M, R, P and H, spelling MORPH around it (the
+ * word acts out its meaning). On the next bar every letter morphs back into an O, the five O's
+ * slide together into one, the O becomes a ring, and the ring opens as a portal onto the scenes.
+ * All glyphs are real outlines of Archivo 800 at 125 % width (morph_glyphs.json, fontTools). */
+type Glyph = {adv: number; contours: string[]; bounds: number[][]};
+const GL = (MG as unknown as {upm: number; glyphs: Record<string, Glyph>}).glyphs;
+const MORPH = 'MORPH';
+const MK = 0.3; // px per font unit (300 px type)
+const TRACK = -20; // font units between letters
+const O_CX = 506; // centre of the O's bowl in font units
+const O_CY = 344;
+const MBASE = 540 + O_CY * MK; // baseline that puts the O's centre on the frame centre
+const slotX = (() => {
+	const advs = Array.from(MORPH).map((c) => GL[c].adv);
+	const total = advs.reduce((a, b) => a + b, 0) + TRACK * (advs.length - 1);
+	let x = 960 - (total * MK) / 2;
+	return advs.map((a) => {
+		const v = x;
+		x += (a + TRACK) * MK;
+		return v;
+	});
+})();
+const O_SLOT = 1;
+const X_CENTER = 960 - O_CX * MK; // glyph origin that centres the O's bowl on the frame
+// the ring the O becomes (font units, centred on the O's bowl): hole 230, band 100
+const RING_IN = 230;
+const RING_OUT = 330;
+const circlePath = (cx: number, cy: number, r: number) => `M ${cx - r} ${cy} A ${r} ${r} 0 1 0 ${cx + r} ${cy} A ${r} ${r} 0 1 0 ${cx - r} ${cy} Z`;
+const RING = {outer: circlePath(O_CX, O_CY, RING_OUT), hole: circlePath(O_CX, O_CY, RING_IN)};
+// letters without a counter get a vanishing hole inside their left stem
+const tinyHole = (ch: string) => circlePath(ch === 'M' ? 190 : 185, 344, 1);
+const outerOf = (ch: string) => GL[ch].contours[0];
+const holeOf = (ch: string) => GL[ch].contours[1] ?? tinyHole(ch);
+const INTERP = new Map<string, (t: number) => string>();
+const morphD = (a: string, b: string, t: number) => {
+	if (t <= 0) return a;
+	if (t >= 1) return b;
+	const key = a + '|' + b;
+	if (!INTERP.has(key)) INTERP.set(key, flubberInterpolate(a, b, {maxSegmentLength: 12}));
+	return INTERP.get(key)!(t);
 };
-const lines = () => {
-	const [w1, w2] = serifWidths();
-	return [
-		{text: L1, x: 960 - w1 / 2, w: w1, top: L1_TOP, cy: L1_TOP + LINE_SIZE * 0.62},
-		{text: L2, x: 960 - w2 / 2, w: w2, top: L2_TOP, cy: L2_TOP + LINE_SIZE * 0.62},
-	];
+const glyphD = (from: {outer: string; hole: string; tiny?: boolean}, to: {outer: string; hole: string; tiny?: boolean}, t: number) => {
+	// a counter that disappears closes early; one that appears opens late, so no bite is left in a stem
+	const th = to.tiny ? clamp01(t * 1.8) : from.tiny ? clamp01((t - 0.45) / 0.55) : t;
+	return morphD(from.outer, to.outer, t) + ' ' + morphD(from.hole, to.hole, th);
 };
-export const lensPos = (f: number) => {
-	const T = TL.idea;
-	const [a, b] = lines();
-	return poseTrack(f, [
-		{f: T.bubble[0], p: {x: a.x + 40, y: 1250, s: 1}},
-		{f: T.bubble[1], p: {x: a.x + 40, y: a.cy, s: 1}, hold: true},
-		{f: T.line1[0], p: {x: a.x + 40, y: a.cy, s: 1}, hold: true},
-		{f: T.line1[1], p: {x: a.x + a.w - 30, y: a.cy, s: 1}},
-		{f: T.line2[0], p: {x: b.x + 40, y: b.cy, s: 1}},
-		{f: T.line2[1], p: {x: b.x + b.w - 20, y: b.cy, s: 1}, hold: true},
-		{f: T.center[1], p: {x: 960, y: 540, s: 1}, hold: true},
-	]);
+const shapeOf = (ch: string) => ({outer: outerOf(ch), hole: holeOf(ch), tiny: !GL[ch].contours[1]});
+
+const MorphGlyph: React.FC<{d: string; x: number; base: number; sx?: number; sy?: number; scale?: number; opacity?: number}> = ({d, x, base, sx = 1, sy = 1, scale = 1, opacity = 1}) => {
+	// squash about the glyph's bottom centre, then font units -> px (y up -> y down)
+	const cx = x + O_CX * MK * scale;
+	return (
+		<g opacity={opacity} transform={`translate(${cx.toFixed(2)},${base.toFixed(2)}) scale(${sx.toFixed(4)},${sy.toFixed(4)}) translate(${(-cx).toFixed(2)},${(-base).toFixed(2)})`}>
+			<path d={d} fillRule="evenodd" fill={C.paper} transform={`translate(${x.toFixed(2)},${base.toFixed(2)}) scale(${(MK * scale).toFixed(4)},${(-MK * scale).toFixed(4)})`} />
+		</g>
+	);
 };
 
-const Sentence: React.FC<{blur?: number; opacity?: number; clip?: (i: number) => string | undefined; rise: number}> = ({blur = 0, opacity = 1, clip, rise}) => (
-	<>
-		{lines().map((l, i) => (
-			<div key={i} style={{position: 'absolute', left: l.x, top: l.top, height: LINE_SIZE * 1.15, overflow: 'hidden', clipPath: clip ? clip(i) : undefined}}>
-				<div style={{...serif, opacity, filter: blur ? `blur(${blur}px)` : undefined, transform: `translateY(${(1 - rise) * 100}%)`}}>{l.text}</div>
-			</div>
-		))}
-	</>
-);
+/** where the falling O is (x of its glyph origin, baseline) */
+const fallingO = (f: number) => {
+	const T = TL.idea;
+	const {cx} = soundLayout();
+	const x0 = cx[1] - O_CX * MK;
+	const x1 = slotX[O_SLOT];
+	const t = clamp01((f - T.fall[0]) / (T.fall[1] - T.fall[0]));
+	const top = -80; // baseline above the frame (the glyph is fully hidden)
+	return {x: lerp(x0, x1, t), base: top + (MBASE - top) * t * t};
+};
+const BOUNCE_H = 70;
+const oBase = (f: number) => {
+	const T = TL.idea;
+	if (f < T.fall[1]) return fallingO(f).base;
+	const s = (f - T.fall[1]) / (T.bounce[1] - T.fall[1]);
+	return s < 1 ? MBASE - BOUNCE_H * 4 * s * (1 - s) : MBASE;
+};
+const oSquash = (f: number) => {
+	const T = TL.idea;
+	const a = landingSquash(f, T.fall[1], 0.3, 16);
+	const b = landingSquash(f, T.bounce[1], 0.14, 14);
+	return {sx: a.sx * b.sx, sy: a.sy * b.sy};
+};
+const CARRIER_SLOT = [0, 2, 3, 4]; // M, R, P, H in the order they hop out
+export const carrierStarts = () => TL.idea.carriers;
+const carrierState = (f: number, j: number) => {
+	const T = TL.idea;
+	const t0 = T.carriers[j];
+	const t = clamp01((f - t0) / T.carrierDur);
+	const u = ease.snap(t);
+	const slot = CARRIER_SLOT[j];
+	const from = slotX[O_SLOT];
+	const to = slotX[slot];
+	const hop = 150 + 40 * Math.abs(slot - O_SLOT);
+	const x = lerp(from, to, u);
+	const base = MBASE - hop * 4 * u * (1 - u);
+	const land = landingSquash(f, t0 + T.carrierDur, 0.16, 14);
+	// stretch along the hop while fast
+	const v = Math.abs(ease.snap(clamp01((f + 0.5 - t0) / T.carrierDur)) - ease.snap(clamp01((f - 0.5 - t0) / T.carrierDur)));
+	const st = 1 + Math.min(0.18, v * 1.6);
+	return {t, x, base, sx: land.sx / st, sy: land.sy * st, ch: MORPH[slot]};
+};
 
 export const Idea: React.FC<{f: number; inner: React.ReactNode}> = ({f, inner}) => {
 	const T = TL.idea;
-	const L = lensPos(f);
-	const rise = ease.out(clamp01((f - T.text[0]) / (T.text[1] - T.text[0])));
-	const [a, b] = lines();
-	// how far each line has been read (sharp up to the lens, and stays sharp)
-	const read1 = f >= T.line1[1] + 2 ? 1e4 : f >= T.line1[0] ? L.x : -1e4;
-	const read2 = f >= T.line2[1] + 2 ? 1e4 : f >= T.line2[0] + 4 ? L.x : -1e4;
-	const clipRead = (i: number) => `inset(0 ${Math.max(0, (i === 0 ? a : b).w - ((i === 0 ? read1 : read2) - (i === 0 ? a : b).x))}px 0 0)`;
-	const bob = f < T.bubble[1] + 20 ? Math.sin((f - T.bubble[0]) * 0.35) * Math.exp(-(f - T.bubble[0]) / 18) * 0.12 : 0;
+	const back = prog(f, T.back[0], T.back[1], ease.snap);
+	const conv = prog(f, T.converge[0], T.converge[1], ease.inOut);
+	const O = shapeOf('O');
+	const ringScale = lerp(1, 150 / (RING_IN * MK), prog(f, T.converge[1], T.iris[1], ease.inOut));
+	const holePx = RING_IN * MK * ringScale;
+	const bandPx = (RING_OUT - RING_IN) * MK * Math.sqrt(ringScale);
 	const iris = prog(f, T.iris[0], T.iris[1], ease.out);
 	const portal = prog(f, T.portal[0], T.portal[1], ease.expand);
 	const far = Math.hypot(960, 540) * 1.05;
-	const R = lerp(LENS_R, far, portal);
-	const readOut = 1 - prog(f, T.center[0], T.center[0] + 10);
+	const hole = lerp(holePx, far, portal);
+	const glyphs: React.ReactNode[] = [];
+	if (f < T.converge[1]) {
+		// the O itself
+		const oD = glyphD(O, RING, conv);
+		const sq = oSquash(f);
+		const x = lerp(f < T.fall[1] ? fallingO(f).x : slotX[O_SLOT], X_CENTER, conv);
+		glyphs.push(<MorphGlyph key="o" d={oD} x={x} base={oBase(f)} sx={sq.sx} sy={sq.sy} />);
+		// the copies: O -> letter in flight, letter -> O on the back beat, then slide into the centre
+		T.carriers.forEach((t0, j) => {
+			if (f < t0) return;
+			const c = carrierState(f, j);
+			const L = shapeOf(c.ch);
+			let d = glyphD(O, L, c.t);
+			if (back > 0) d = glyphD(L, O, back);
+			if (conv > 0) d = glyphD(O, RING, conv);
+			const x = lerp(c.x, X_CENTER, conv);
+			glyphs.push(<MorphGlyph key={j} d={d} x={x} base={c.base} sx={c.sx} sy={c.sy} />);
+		});
+	}
+	// designer's notes under each letter: which shape it came from
+	const notes = CARRIER_SLOT.map((slot, j) => {
+		const on = prog(f, T.carriers[j] + T.carrierDur - 2, T.carriers[j] + T.carrierDur + 10, ease.out) * (1 - prog(f, T.back[0] - 8, T.back[0] + 4));
+		if (on <= 0) return null;
+		const cx = slotX[slot] + (GL[MORPH[slot]].adv * MK) / 2;
+		return (
+			<div key={slot} style={{position: 'absolute', left: cx - 80, width: 160, top: MBASE + 34 + (1 - on) * 10, textAlign: 'center', fontFamily: MONO, fontSize: 20, letterSpacing: '0.12em', color: C.ink, opacity: 0.75 * on}}>
+				O → {MORPH[slot]}
+			</div>
+		);
+	});
 	return (
 		<AbsoluteFill style={{background: C.coral}}>
-			<Sentence blur={9} opacity={0.5 * readOut} rise={rise} />
-			<Sentence clip={clipRead} rise={rise} opacity={readOut} />
-			<LensPortal cx={L.x} cy={L.y} r={R} rim={1 - prog(f, T.portal[0] + 8, T.portal[1] - 4)}>
-				<AbsoluteFill style={{background: mixColor(C.coral, '#FFB7A8', 0.5)}}>
-					<AbsoluteFill style={{transformOrigin: `${L.x}px ${L.y}px`, transform: 'scale(1.22)'}}>
-						<Sentence rise={rise} opacity={readOut} />
-					</AbsoluteFill>
-					{iris > 0 ? <AbsoluteFill style={{clipPath: `circle(${(iris * (R + 4)).toFixed(1)}px at ${L.x}px ${L.y}px)`}}>{inner}</AbsoluteFill> : null}
-				</AbsoluteFill>
-			</LensPortal>
-			{/* the ring of the o (the lens frame), thick like the letter */}
-			{portal < 0.4 ? (
-				<div
-					style={{
-						position: 'absolute',
-						left: L.x - R - 13,
-						top: L.y - R - 13,
-						width: 2 * (R + 13),
-						height: 2 * (R + 13),
-						borderRadius: '50%',
-						border: `26px solid ${C.paper}`,
-						boxSizing: 'border-box',
-						transform: `scale(${1 + bob}, ${1 - bob})`,
-						opacity: 1 - prog(f, T.portal[0], T.portal[0] + 10),
-						boxShadow: '0 18px 40px rgba(0,0,0,0.18)',
-					}}
-				/>
-			) : null}
+			{/* the portal: scenes inside the ring's hole */}
+			{iris > 0 ? <AbsoluteFill style={{clipPath: `circle(${((portal > 0 ? hole : iris * holePx) + 0.5).toFixed(1)}px at 960px 540px)`}}>{inner}</AbsoluteFill> : null}
+			<svg width={W} height={H} style={{position: 'absolute', inset: 0, overflow: 'visible'}}>
+				<g style={{filter: 'drop-shadow(0 14px 24px rgba(80,20,10,0.22))'}}>{glyphs}</g>
+				{f >= T.converge[1] && portal < 1 ? (
+					<circle cx={960} cy={540} r={hole + bandPx / 2} fill="none" stroke={C.paper} strokeWidth={bandPx} opacity={1 - prog(f, T.portal[0] + 6, T.portal[1] - 6)} style={{filter: 'drop-shadow(0 14px 24px rgba(80,20,10,0.22))'}} />
+				) : null}
+			</svg>
+			{notes}
 		</AbsoluteFill>
 	);
 };

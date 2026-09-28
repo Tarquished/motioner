@@ -41,19 +41,25 @@ for i in range(5):
 for f in [360, 390, 420, 450]:
     add(type="pluck", frame=f, degree=0, octave=3, gain_db=1, label="string pluck")
 for f in [375, 405, 435]:
-    add(type="pluck", frame=f, degree=4, octave=3, gain_db=-5, label="string off-beat")
-add(type="riser", frame=TL["sound"]["flood"][1] - 5, frames=44, label="riser into the flood")
+    add(type="pluck", frame=f, degree=4, octave=3, gain_db=-1, label="string off-beat")
+add(type="riser", frame=TL["sound"]["flood"][1] - 4, frames=44, label="riser into the flood")
 add(type="whoosh", frame=462, frames=40, gain_db=-3, label="wave floods")
 
-# 04 idea: the o floats up as a lens and reads the sentence
-add(type="impact", frame=480, gain_db=-3, label="drop: idea")
-add(type="whoosh", frame=500, frames=30, gain_db=-7, label="bubble rises")
-add(type="pop", frame=TL["idea"]["bubble"][1], degree=4, octave=5, label="lens settles")
-for k, f in enumerate([524, 538, 552, 564, 580, 596, 614]):
-    add(type="tick", frame=f, gain_db=-5, pan=-0.5 + k * 0.16, label="word read")
-add(type="chime", frame=TL["idea"]["center"][1] - 4, label="idea found")
-add(type="riser", frame=TL["idea"]["portal"][0], frames=24, gain_db=-5, label="into the portal")
-add(type="whoosh", frame=658, frames=26, label="portal opens")
+# 04 morph: the O falls back, copies hop out and morph into M, R, P, H, all turn back into O,
+# slide into one ring, and the ring opens as a portal
+I = TL["idea"]
+add(type="whoosh", frame=I["fall"][1] - 4, frames=18, gain_db=-6, label="O falls back")
+add(type="thud", frame=I["fall"][1], label="O lands")
+add(type="pluck", frame=I["fall"][1], degree=0, octave=3, gain_db=-2, label="O lands (tone)")
+add(type="pop", frame=I["bounce"][1], degree=4, octave=5, gain_db=-4, label="O bounce")
+for j, f in enumerate(I["carriers"]):
+    add(type="whoosh", frame=f + 8, frames=16, gain_db=-3, pan=[-0.5, 0.2, 0.4, 0.6][j], label="copy hops")
+    add(type="pop", frame=f + I["carrierDur"], degree=[0, 2, 4, 7][j], octave=5, pan=[-0.5, 0.2, 0.4, 0.6][j], label="letter lands")
+add(type="stab", frame=I["back"][0], octave=4, gain_db=-2, label="all back to O")
+add(type="whoosh", frame=626, frames=20, gain_db=-5, label="O's slide together")
+add(type="chime", frame=I["converge"][1], label="one ring")
+add(type="riser", frame=I["portal"][0], frames=20, gain_db=-5, label="into the portal")
+add(type="whoosh", frame=660, frames=26, label="portal opens")
 
 # 05 scenes: pull back to the wall, one word per beat, the playing column sweeps
 add(type="whoosh", frame=700, frames=60, gain_db=-5, label="pull back")

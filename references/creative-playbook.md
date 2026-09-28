@@ -44,6 +44,7 @@ Pick a different one for each boundary; two in a row of the same kind feel mecha
 | Push-through | zoom into one element (a tile, a letter's counter, a button) until its colour is the new background | `ZoomThrough` |
 | Tile / grid metamorphosis | a pattern's tile becomes a dot; dots become plus signs, diamonds, cubes; a flat grid tilts into 3D and extrudes | `DotField` + CSS 3D or `@remotion/three` |
 | Particles | a word or shape explodes into particles that swirl (flow field, vortex, galaxy) and collapse to a bright point; the next thing grows out of that point | `ParticleForm` |
+| Letter morph | one glyph morphs into other glyphs (real font outlines from fontTools, flubber per contour, counters closing early / opening late); copies hopping out of a letter can spell a whole word | `PathMorph`, see `examples/reel03` |
 | Text becomes geometry | lines of text bend into rings around a dot, spin, blur into a disc, collapse | `TextRing` |
 | Strike and replace | a line strikes through a word; on the beat the field changes colour and the replacement slams in | `StrikeSwap` |
 | Wipe with a shape of the story | diagonal band, stepped stairs, slats retracting in a stagger, a tube snaking across: the wipe object has its own colour and edge | `SlatReveal`, `BandWipe` |

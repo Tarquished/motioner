@@ -9,7 +9,7 @@ Every frame and every sound of these three films was written in code by an agent
 | | | |
 |---|---|---|
 | [![Motioner film](videos/01-motioner-film.jpg)](videos/01-motioner-film.mp4) | [![Reel 02](videos/02-motioner-reel02.jpg)](videos/02-motioner-reel02.mp4) | [![Reel 03](videos/03-motioner-reel03.jpg)](videos/03-motioner-reel03.mp4) |
-| **01 · Motioner film** (18.6 s): a product story; cards, frames and thumbnails morph into each other | **02 · Reel 02** (16 s): one coral dot becomes every scene; easing rails, shape morphs, beat, prompt, montage | **03 · Reel 03** (18 s): everything is inside the word *motioner*; the t becomes a timeline, the line becomes sound waves, the o becomes a lens |
+| **01 · Motioner film** (18.6 s): a product story; cards, frames and thumbnails morph into each other | **02 · Reel 02** (16 s): one coral dot becomes every scene; easing rails, shape morphs, beat, prompt, montage | **03 · Reel 03** (18 s): everything is inside the word *motioner*; the t becomes a timeline, the line becomes a plucked string, the O morphs into every letter of MORPH |
 
 Sources: `examples/reel02/`, `examples/reel03/`.
 

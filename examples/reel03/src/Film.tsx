@@ -8,7 +8,7 @@ import {C, H, W} from './shared';
 const picture = (f: number): React.ReactNode => {
 	if (f < TL.timing.drop[0]) return <Intro f={f} />;
 	if (f < TL.sound.sink[0]) return <Timing f={f} />;
-	if (f < TL.idea.bubble[0]) return <Sound f={f} />;
+	if (f < TL.idea.fall[0]) return <Sound f={f} />;
 	if (f < TL.idea.portal[1]) return <Idea f={f} inner={<Scenes f={f} />} />;
 	if (f < TL.outro.shrink[0]) {
 		return (
@@ -43,8 +43,8 @@ const hud = (f: number) => {
 const chapter = (f: number) => {
 	if (f < TL.timing.drop[0]) return '01 / 05   THE WORD';
 	if (f < TL.sound.sink[0]) return '02 / 05   TIMING';
-	if (f < TL.idea.bubble[0]) return '03 / 05   SOUND';
-	if (f < TL.idea.portal[1] - 10) return '04 / 05   YOUR IDEA';
+	if (f < TL.idea.fall[0]) return '03 / 05   SOUND';
+	if (f < TL.idea.portal[1] - 10) return '04 / 05   MORPH';
 	if (f < TL.outro.shrink[0]) return '05 / 05   SCENES';
 	return 'MOTIONER';
 };
