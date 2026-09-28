@@ -22,6 +22,8 @@ A brand reel built the way the benchmark films are built (see `references/refere
 
 Measured on the delivered file: verify PASS; 79/79 cues within 12 ms (median 0.0 ms); -14.4 LUFS, -1.61 dBTP, music 6.9 LU under the mix. (Measured, not heard: listen before you judge the feel.)
 
+> **Rejected device, do not copy:** the client found the prompt-bar / "describe it" chapter in this film not creative. Keep the rest as reference; replace that kind of chapter with something the viewer watches happen (see `references/direction-profile.md`).
+
 ## Review notes (what the tools flagged and what was done)
 
 - The prompt pill first appeared as a ring around the send button in one frame (HANDOFF-JUMP at 596): it now grows out of the button's exact circle and collapses back into it.

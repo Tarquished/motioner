@@ -27,6 +27,8 @@ Written in code (`scripts/make_score.py` → `synth_score.py`): D minor, i-VI-II
 
 Measured on the delivered file: verify PASS; 69/70 cues within 12 ms (the riser into the flood ends 1.2 frames early by cross-correlation, inside the silence gap); -14.1 LUFS, -1.59 dBTP, music 6.8 LU under the mix. (Measured, not heard.)
 
+> **Rejected device, do not copy:** the client found the prompt-bar / "describe it" chapter in this film not creative. Keep the rest as reference; replace that kind of chapter with something the viewer watches happen (see `references/direction-profile.md`).
+
 ## Review notes
 
 Client feedback after the first version, and the fixes:

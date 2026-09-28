@@ -31,6 +31,7 @@ Use when a brief asks for a polished, lively product film and leaves direction o
 - Em dashes, middle dots as separators and slogan-like AI phrasing in on-screen copy (unless the brand uses them).
 - "Posters joined by wipes": a big static headline plus one spinning 3D object, held for seconds and replaced by a panel wipe. The benchmark comparison film shows this is what makes a film look generic next to one where every scene transforms.
 - Small type floating in a large empty frame; a whole chapter where only a caption changes.
+- **Prompt-box clichés.** A chat or prompt bar where someone types "describe the video…", "just describe it", "a dot that becomes a logo", or any on-screen line that tells the viewer to imagine, describe or type something. Rejected twice as "really not creative" (reel 02 chapter 06, reel 03 chapter 04). It explains the product instead of showing it and every AI-tool video already does it. Show the result happening instead: an object that transforms, a scene that builds itself, an interaction with a real consequence. This applies even when the product is an AI or prompt-driven tool, unless the brief explicitly asks for the real prompt UI.
 - A fabricated logo or identity presented as real.
 
 ## Do not freeze an old brief into the skill

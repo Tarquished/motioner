@@ -100,3 +100,4 @@ Pairings that work: extended black grotesk caps (Unbounded, Archivo Expanded, Br
 - Pause at any frame: is there one clear focal object, and does the still look like a designed poster?
 - Is anything on screen for more than one beat without moving (outside the end card)?
 - Does every word on screen do something only that word would do?
+- Is there any prompt box, typed instruction, or line addressed to the viewer ("describe…", "imagine…", "just type…")? Remove it and replace it with something the viewer can watch happen. Copy on screen is a verb the picture acts out, never an instruction.
