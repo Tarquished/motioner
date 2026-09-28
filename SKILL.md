@@ -34,7 +34,7 @@ Write the four lines from the [creative playbook](references/creative-playbook.m
 ### 4. Build with the kit
 - Copy `templates/remotion/*` into `src/motioner/`: `motion.ts` (curves, smooth tracks, arcs, OKLab colour, fastest-frame finder), `Morph.tsx` (`handoff`, `MorphCarrier`, `PathMorph`, `LetterMorph`, `shadowOf`), `transitions.tsx` (`FloodReveal`, `ZoomThrough`, `WhipPan`, `MotionBlur`, `SharpZoom`), `creative.tsx` (`HudFrame`, `Grain`, `Burst`, `Aperture`, `LensPortal`, `SlatReveal`, `BandWipe`, `EchoTrail`, `KineticWord`, `AbsorbWord`, `Counter`, `TypeOn`, `ParticleForm`, `RgbSplit`, `squashStretch`, `beatFrame`, `speedCurve`) and `build.mjs` (score + render + mux + verification). Read [Remotion setup](references/remotion-setup.md).
 - Everything is a pure function of the frame. No CSS transitions, timers, `Math.random()`, or layout measured with `getBoundingClientRect` under a transform. Hold rendering until fonts load; measure letters once with `measureWidths` and position them absolutely so words never reflow.
-- `examples/reel02/` is a complete 16 s film built this way (seed dot → words → easing rails → shape morphs → beat → prompt → montage → logo) with its score script; read it before building your first film.
+- `examples/reel02/` (a seed dot that becomes every scene) and `examples/reel03/` (a film built from the letters of one word: particles → word → t → timeline → waves → lens → scene wall → word) are complete films with their score scripts and review notes; read one before building your first film. Do not reuse their seed: a new film needs its own idea.
 
 ### 5. Review every transition, then fix
 Render a draft and run the loop in [review checks](references/review-checks.md):

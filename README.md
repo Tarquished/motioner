@@ -2,6 +2,17 @@
 
 An Agent Skill (Claude Code and Codex) for making motion graphics, reels and product videos at the level of the best films made in code: **a creative concept** (one seed object that transforms through every scene, chapters on the beat, type that acts out its words), **smooth animation**, **seamless morph transitions**, and **music and sound effects written in code and placed on the exact frame**. Remotion is the default tool.
 
+## Films made with it
+
+Every frame and every sound of these three films was written in code by an agent using this skill (click a poster to watch):
+
+| | | |
+|---|---|---|
+| [![Motioner film](videos/01-motioner-film.jpg)](videos/01-motioner-film.mp4) | [![Reel 02](videos/02-motioner-reel02.jpg)](videos/02-motioner-reel02.mp4) | [![Reel 03](videos/03-motioner-reel03.jpg)](videos/03-motioner-reel03.mp4) |
+| **01 · Motioner film** (18.6 s): a product story; cards, frames and thumbnails morph into each other | **02 · Reel 02** (16 s): one coral dot becomes every scene; easing rails, shape morphs, beat, prompt, montage | **03 · Reel 03** (18 s): everything is inside the word *motioner*; the t becomes a timeline, the line becomes sound waves, the o becomes a lens |
+
+Sources: `examples/reel02/`, `examples/reel03/`.
+
 It is not just advice. It ships:
 
 - **A Remotion kit** (`templates/remotion/`): film chrome (HUD), grain, bursts, camera aperture, lens portal, slat and band wipes, onion-skin trails, kinetic words (rise, drop, bounce, stretch, spin, snap, smear), absorb-into-the-dot, counters, typing, particles, RGB split, squash and stretch; curves by role, hitch-free keyframe tracks, OKLab colour mixing, a `MorphCarrier` that enforces the source/carrier/target contract (no double cards, no ghost text), path and letter morphs, flood, zoom-through and whip-pan transitions, directional motion blur, sharp close-ups, and a build pipeline.
@@ -19,7 +30,7 @@ It is not just advice. It ships:
 | `verify_video.py` | Size, fps, exact frame count, codec, pixel format, audio length |
 
 - **Reference docs** (`references/`): a frame-by-frame breakdown of 12 benchmark films and a creative playbook (concept in four lines, beat map, transformation catalogue, type that acts), morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, review loop, Remotion setup, typography, direction defaults.
-- **Worked examples**: `examples/reel02/` (16 s brand reel: seed dot, beat-locked chapters, kinetic type, montage, synthesized score) and `examples/papertrail/` (14.5 s product film using every morph type), each with review sheets and the glitches the tools caught.
+- **Worked examples**: `examples/reel03/` (18 s reel built from the letters of one word), `examples/reel02/` (16 s brand reel: seed dot, beat-locked chapters, kinetic type, montage, synthesized score) and `examples/papertrail/` (14.5 s product film using every morph type), each with review sheets and the glitches the tools caught.
 
 ![Reel 02, whole film](examples/reel02/review/film.png)
 

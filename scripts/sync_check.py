@@ -113,8 +113,10 @@ def main():
     # search at most 45 % of the gap to the nearest other cue that uses the same file
     same_gap = []
     for i, c in enumerate(cues):
+        # same family = same file, or another take of it (synth_score names takes <type>_<hash>)
+        fam = lambda q: Path(q["file"]).stem.rsplit("_", 1)[0]  # noqa: E731
         gaps = [abs(o["frame"] - c["frame"]) / fps for j, o in enumerate(cues)
-                if j != i and o["file"] == c["file"] and o.get("rate", 1.0) == c.get("rate", 1.0) and o["frame"] != c["frame"]]
+                if j != i and (o["file"] == c["file"] or fam(o) == fam(c)) and o["frame"] != c["frame"]]
         same_gap.append(min(gaps) if gaps else None)
     for ci, c in enumerate(cues):
         f = c["file"]
