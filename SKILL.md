@@ -63,7 +63,8 @@ Render a draft and run the loop in [review checks](references/review-checks.md):
 - Stagger carriers with `delay` inside one window; swap content sequentially; mix colours in OKLab; one continuous curve per move.
 - Incoming text appears only after a reveal's edge has passed it.
 - Sounds are made or chosen for the event and placed by their alignment point (attack on contact, whoosh peak on the fastest frame, riser end on the reveal minus the silence gap). Repeated sounds use several takes; never the same take twice within 60 ms.
-- Layers stack by render order; no global `zIndex` on overlays. Slowly scaled text groups get `will-change: transform`.
+- Layers stack by render order; no global `zIndex` on overlays. Slowly scaled text groups (up to ~1.2x) get `will-change: transform`; text that grows more is re-laid at its real font size each frame, never scaled up as a bitmap.
+- Anything that rides, bounces or reacts is simulated (gravity, contact, squash, lagging rotation) against a surface driven by events; a formula like a scrolling sine reads as stiff.
 - Mux the mastered WAV with FFmpeg; deliver `yuv420p` bt709; prove sync in the final file.
 
 For open-ended branded work, [direction profile](references/direction-profile.md) gives taste defaults and the list of things clients have rejected. [Typography](references/typography.md) covers font choice and text motion.

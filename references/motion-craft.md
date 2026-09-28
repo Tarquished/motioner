@@ -30,6 +30,7 @@ The eye sees acceleration changes, not positions. A move feels choppy when its s
 - **Idle motion meets a handoff at zero speed.** A float or bob drawn with `sin` is at full speed when it crosses zero; shape it with `sin²` (zero speed at both ends) or fade its amplitude out before the object is picked up by a carrier or another move.
 - **Pulses need an attack.** A beat-reactive element (equalizer, dot pulse, flash) that jumps to full height in one frame reads as a glitch; ramp it over 2 frames, then decay over 8 to 12.
 - **Squash and stretch the seed.** Stretch along the travel from its velocity (`squashStretch`), squash on contact with the origin at the contact point (`landingSquash`), anticipate a launch by sinking for 6 to 8 frames. Show the path with an onion-skin (`EchoTrail`) or a dotted arc chart when the film is about motion.
+- **Things that ride or react need physics, not a formula.** Letters glued to a scrolling sine wave with rotation copied from its slope look stiff. Simulate them (a deterministic per-frame step, memoised: gravity, contact, launch by the surface's velocity, landing squash, rotation with a spring that lags the target) and drive the surface by events (a plucked string with standing modes that decay at different rates; every impact is a pluck). Cause and effect is what reads as alive (`examples/reel03`, SOUND).
 - **Keep animated content alive through moves.** Content inside a moving card keeps its own animation (render with the current frame); freezing it for the move makes it jump when it resumes.
 - `transition_review.py` flags STUTTER (a repeated frame inside a move), HITCH (speed collapses for 1 to 2 frames), JERK (a still object at full speed in one frame) and TELEPORT/HANDOFF-JUMP (a small region jumps); its motion curve is your speed graph.
 
@@ -66,6 +67,7 @@ For every tap/click: approach on an arc with ease-in-out, press-in 4 to 5 frames
 - Close-ups: never scale a small raster up. Use `SharpZoom` (CSS `zoom` then scale down) for DOM layers, vector art for icons and logos, and render 2x (`--scale 2`, then downscale with Lanczos) for masters with heavy zooms.
 - Motion blur only along the direction of travel and only while fast (`MotionBlur`, `blurFromSpeed`). A uniform `blur()` on a moving object reads as out of focus.
 - Blur-fades on content (a few px) are fine inside a carrier's content swap; keep them short.
+- Never grow text with a CSS `scale()` beyond about 1.2, and never on a layer with `will-change: transform` (the bitmap stays at its first size and is enlarged): re-lay the glyph at its real font size every frame (position = scale about the anchor, `fontSize = size * s`).
 - Slow scaling of a group with text (end-card push-in, 1.00 to 1.04 over seconds) makes Chrome re-rasterise the glyphs at stepped sizes: the text shimmers on some frames. Put `will-change: transform` on that group.
 
 ## Text in motion

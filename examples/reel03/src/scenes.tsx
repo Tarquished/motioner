@@ -102,9 +102,7 @@ export const Timing: React.FC<{f: number}> = ({f}) => {
 				: null}
 			{/* the t grows into the centre; its crossbar extends into a band, then a field */}
 			{f < T.field[1] ? (
-				<div style={{position: 'absolute', left: 0, top: 0, width: W, height: H, transformOrigin: `${tCx}px ${barCy}px`, transform: `translate(${dx * k}px, ${dy * k}px) scale(${lerp(1, T_S, k)})`}}>
-					<Letter i={2} color={C.paper} />
-				</div>
+				<BigT k={k} />
 			) : null}
 			{f >= T.bar[0] && f < T.field[1] + 2 ? <div style={{position: 'absolute', left: bandL, top: bandT, width: bandR - bandL, height: bandB - bandT, background: C.paper}} /> : null}
 			{/* timeline on paper */}
@@ -150,6 +148,17 @@ export const Timing: React.FC<{f: number}> = ({f}) => {
 		</AbsoluteFill>
 	);
 };
+/** The t drawn at its true size for zoom progress k (font size scales, nothing is up-sampled). */
+const BigT: React.FC<{k: number}> = ({k}) => {
+	const {off, x0, top} = wordInfo();
+	const {dx, dy, barCy, tCx} = tPlacement();
+	const s = lerp(1, T_S, k);
+	const cx = tCx + dx * k;
+	const cy = barCy + dy * k;
+	const left = cx + (x0 + off[2] - tCx) * s;
+	const tp = cy + (top - barCy) * s;
+	return <span style={{...displayStyle(WSIZE * s, C.paper), position: 'absolute', left, top: tp}}>t</span>;
+};
 const springLike = (t: number) => (t < 0 ? 0 : 1 + Math.exp(-t / 4) * Math.sin(t * 0.9) * 0.35 - Math.exp(-t / 2) * (1 - Math.min(1, t / 3)));
 /** first frame at which the playhead reaches x */
 export const firstFrameAt = (x: number) => {
@@ -162,58 +171,163 @@ export const timingLetterFrames = () => {
 };
 export const keyFrames = () => [0.22, 0.5, 0.78].map((p) => firstFrameAt(lerp(RULER_X0, RULER_X1, p)));
 
-/* ═══════════ 03 SOUND: the ruler line vibrates into waves, SOUND rides them, the wave floods ═══════════ */
-const beatEnv = (f: number) => {
-	let e = 0;
-	for (let b = 10; b <= 16; b++) {
-		const fb = b * 30;
-		const hit = (d: number, dec: number) => (d < 0 ? 0 : d < 2 ? d / 2 : Math.exp(-(d - 2) / dec));
-		e += hit(f - fb, 12) + 0.4 * hit(f - fb - 15, 7);
-	}
-	return Math.min(1.3, e);
-};
-const ampAt = (f: number) => 62 * prog(f, TL.sound.wave[0], TL.sound.wave[0] + 34, ease.inOut) * (1 + 0.45 * beatEnv(f));
-const waveY = (x: number, f: number, k: number, ph: number) => RULER_Y + ampAt(f) * k * Math.sin((2 * Math.PI * x) / 620 - f * 0.085 + ph);
+/* ═══════════ 03 SOUND: the timeline becomes a plucked string ═══════════
+ * The ruler line is a real string: every impact plucks it (standing modes of a plucked string,
+ * each decaying at its own rate). TIMING falls into it, SOUND is flung out of it and then rides
+ * it like objects on a trampoline (gravity, contact, launch, squash, rotation that lags the slope).
+ * On every kick the string is plucked again; at the end the coral wave rises and throws the
+ * letters out of the top of the frame. */
 const SOUND = 'SOUND';
 const SND_SIZE = 230;
+const SIM0 = 300;
+const SIM1 = 500;
+const LAUNCH0 = 330;
+const LAUNCH_STEP = 4;
 export const floodLevel = (f: number) => lerp(H + 260, -300, prog(f, TL.sound.flood[0], TL.sound.flood[1], ease.inOut));
+const stringEnds = (f: number) => {
+	const widen = prog(f, TL.sound.sink[0], TL.sound.sink[0] + 20, ease.inOut);
+	return {xa: lerp(RULER_X0, -20, widen), xb: lerp(RULER_X1, W + 20, widen), widen};
+};
+type Pluck = {f: number; x: number; a: number};
+let PLUCKS: Pluck[] | null = null;
+const soundLayout = () => {
+	const so = layout(SOUND, SND_SIZE).map((v, i) => v + i * SND_SIZE * 0.1);
+	const sx0 = 960 - so[so.length - 1] / 2;
+	const cx = Array.from(SOUND).map((_, i) => sx0 + so[i] + (so[i + 1] - so[i] - SND_SIZE * 0.1) / 2);
+	return {so, sx0, cx};
+};
+export const timingLandings = () => Array.from(TIMING).map((_, i) => TL.sound.sink[0] + i * 2 + 14);
+export const soundLaunches = () => Array.from(SOUND).map((_, i) => LAUNCH0 + i * LAUNCH_STEP);
+export const STRING_BEATS = [360, 390, 420, 450];
+export const STRING_OFFBEATS = [375, 405, 435];
+const plucks = (): Pluck[] => {
+	if (PLUCKS) return PLUCKS;
+	const {o, x0} = timingLayout();
+	const {cx} = soundLayout();
+	const P: Pluck[] = [];
+	timingLandings().forEach((f, i) => P.push({f, x: x0 + (o[i] + o[i + 1]) / 2, a: 44}));
+	soundLaunches().forEach((f, i) => P.push({f, x: cx[i], a: -58}));
+	STRING_BEATS.forEach((f, j) => P.push({f, x: [960, 560, 1360, 820][j], a: -100}));
+	STRING_OFFBEATS.forEach((f, j) => P.push({f, x: [1300, 700, 1100][j], a: -40}));
+	PLUCKS = P;
+	return P;
+};
+const MODES = [1, 2, 3, 4, 5];
+const W1 = (2 * Math.PI) / 22;
+/** string displacement (px, + is down) */
+const disp = (x: number, f: number) => {
+	const {xa, xb} = stringEnds(f);
+	const L = xb - xa;
+	const u = (x - xa) / L;
+	if (u <= 0 || u >= 1) return 0;
+	let y = 0;
+	for (const p of plucks()) {
+		const t = f - p.f;
+		if (t < 0) continue;
+		const up = Math.min(0.97, Math.max(0.03, (p.x - xa) / L));
+		const att = t < 3 ? (t / 3) * (t / 3) * (3 - 2 * (t / 3)) : 1;
+		let v = 0;
+		let norm = 0;
+		for (const n of MODES) {
+			const c = 1 / Math.pow(n, 1.25);
+			const sp = Math.sin(n * Math.PI * up);
+			norm += c * sp * sp;
+			v += c * sp * Math.sin(n * Math.PI * u) * Math.cos(n * W1 * t) * Math.exp(-t / (30 / Math.pow(n, 0.8)));
+		}
+		y += (p.a * att * v) / Math.max(1e-3, norm);
+	}
+	return y;
+};
+const stringY = (x: number, f: number, lag = 0, k = 1) => RULER_Y + k * disp(x, f - lag);
+const floodY = (x: number, f: number) => floodLevel(f) + 0.8 * disp(x, f);
+const surfaceY = (x: number, f: number) => Math.min(stringY(x, f), f >= TL.sound.flood[0] - 2 ? floodY(x, f) : 1e9);
+
+type LState = {on: boolean; y: number; vy: number; rot: number; rv: number; sq: number; age: number};
+let SIM: LState[][] | null = null;
+const simulate = () => {
+	if (SIM) return SIM;
+	const {cx} = soundLayout();
+	const L = soundLaunches();
+	const out: LState[][] = [];
+	const st: LState[] = cx.map(() => ({on: false, y: RULER_Y, vy: 0, rot: 0, rv: 0, sq: 0, age: 0}));
+	for (let f = SIM0; f <= SIM1; f++) {
+		const row: LState[] = [];
+		cx.forEach((x, i) => {
+			const s = st[i];
+			const ys = surfaceY(x, f);
+			const vs = ys - surfaceY(x, f - 1);
+			if (!s.on) {
+				if (f === L[i]) {
+					s.on = true;
+					s.y = ys;
+					s.vy = -(21 + 7 * rand(i * 4.7));
+					s.rv = (rand(i * 9.1) - 0.5) * 5;
+				}
+			} else {
+				s.age++;
+				s.vy += 1.15;
+				s.y += s.vy;
+				let contact = false;
+				if (s.y >= ys) {
+					const impact = s.vy - vs;
+					if (impact > 2) s.sq = Math.max(s.sq, Math.min(0.28, impact * 0.016));
+					s.y = ys;
+					s.vy = vs < 0 ? vs * 1.12 : vs;
+					contact = true;
+				}
+				const slope = (surfaceY(x + 40, f) - surfaceY(x - 40, f)) / 80;
+				const target = contact ? ((Math.atan(slope) * 180) / Math.PI) * 1.0 : s.rot * 0.97;
+				s.rv += (target - s.rot) * (contact ? 0.16 : 0.03);
+				s.rv *= 0.8;
+				s.rot += s.rv;
+				s.sq *= 0.78;
+			}
+			row.push({...s});
+		});
+		out.push(row);
+	}
+	SIM = out;
+	return out;
+};
+/** frames where a SOUND letter lands on the string hard enough to squash (for sound cues) */
+export const soundLandings = () => {
+	const sim = simulate();
+	const res: {f: number; i: number}[] = [];
+	for (let k = 1; k < sim.length; k++) sim[k].forEach((s, i) => {
+		if (s.on && s.sq > 0.08 && s.sq > sim[k - 1][i].sq * 1.3) res.push({f: SIM0 + k, i});
+	});
+	return res;
+};
 
 export const Sound: React.FC<{f: number}> = ({f}) => {
 	const T = TL.sound;
 	const {o: to, x0: tx0} = timingLayout();
-	const so = layout(SOUND, SND_SIZE).map((v, i) => v + i * SND_SIZE * 0.1);
-	const sx0 = 960 - so[so.length - 1] / 2;
-	const lines: [string, number, number, number][] = [
-		[C.blue, 0.62, -1.3, 5],
-		[C.ink, 1, 0, 6],
-	];
-	const widen = prog(f, T.sink[0], T.sink[0] + 20, ease.inOut);
-	const xa = lerp(RULER_X0, -20, widen);
-	const xb = lerp(RULER_X1, W + 20, widen);
-	const path = (k: number, ph: number) => {
+	const {so, sx0, cx} = soundLayout();
+	const {xa, xb, widen} = stringEnds(f);
+	const path = (lag: number, k: number) => {
 		let d = '';
-		for (let x = xa; x <= xb + 11.9; x += 12) {
+		for (let x = xa; x <= xb + 9.9; x += 10) {
 			const xx = Math.min(x, xb);
-			d += `${x === xa ? 'M' : 'L'}${xx.toFixed(1)},${waveY(xx, f, k, ph).toFixed(1)} `;
+			d += `${x === xa ? 'M' : 'L'}${xx.toFixed(1)},${stringY(xx, f, lag, k).toFixed(1)} `;
 		}
 		return d;
 	};
-	const level = floodLevel(f);
-	const surface = (x: number) => level + ampAt(f) * 0.8 * Math.sin((2 * Math.PI * x) / 620 - f * 0.085 + 0.9);
 	let fill = '';
-	for (let x = -20; x <= W + 20; x += 12) fill += `${x === -20 ? 'M' : 'L'}${x},${surface(x).toFixed(1)} `;
+	for (let x = -20; x <= W + 20; x += 10) fill += `${x === -20 ? 'M' : 'L'}${x},${floodY(x, f).toFixed(1)} `;
 	fill += `L${W + 20},${H + 20} L-20,${H + 20} Z`;
 	const ph = playheadX(f);
+	const echoes = prog(f, 312, 330);
+	const sim = simulate()[Math.min(SIM1, Math.max(SIM0, f)) - SIM0];
 	return (
 		<AbsoluteFill style={{background: C.paper}}>
 			<svg width={W} height={H} style={{position: 'absolute', inset: 0}}>
-				{lines.map(([col, k, p, w], j) => (
-					<path key={j} d={path(k, p)} fill="none" stroke={col} strokeWidth={j === 1 ? lerp(3, w, widen) : w} strokeLinecap={j === 1 && widen < 1 ? 'butt' : 'round'} opacity={j === 1 ? 1 : prog(f, T.wave[0] + 4, T.wave[0] + 16)} />
-				))}
-				<path d={path(0.8, 0.9)} fill="none" stroke={C.coral} strokeWidth={5} opacity={prog(f, T.wave[0] + 4, T.wave[0] + 16)} />
+				{/* echoes of the string a few frames behind: the vibration leaves a trail */}
+				<path d={path(8, 0.75)} fill="none" stroke={C.blue} strokeWidth={4} strokeLinecap="round" opacity={0.85 * echoes} />
+				<path d={path(4, 0.9)} fill="none" stroke={C.coral} strokeWidth={4} strokeLinecap="round" opacity={0.9 * echoes} />
+				<path d={path(0, 1)} fill="none" stroke={C.ink} strokeWidth={lerp(3, 6, widen)} strokeLinecap={widen < 1 ? 'butt' : 'round'} />
 				{f >= T.flood[0] - 2 ? <path d={fill} fill={C.coral} /> : null}
 			</svg>
-			{/* ruler ticks and playhead fall away as the line starts to move */}
+			{/* ruler ticks, keyframes and playhead fall away as the line becomes a string */}
 			{f < 330
 				? Array.from({length: 17}, (_, i) => {
 						const x = RULER_X0 + ((RULER_X1 - RULER_X0) * i) / 16;
@@ -245,26 +359,23 @@ export const Sound: React.FC<{f: number}> = ({f}) => {
 						);
 					})()
 				: null}
-			{/* TIMING sinks into the line */}
+			{/* TIMING falls into the string: each letter squeezes into it and plucks it on contact */}
 			{Array.from(TIMING).map((ch, i) => {
 				const t = prog(f, T.sink[0] + i * 2, T.sink[0] + i * 2 + 14, ease.in);
 				if (t >= 1) return null;
 				return (
-					<span key={i} style={{...displayStyle(TIM_SIZE, C.ink), position: 'absolute', left: tx0 + to[i], top: TIM_TOP, transformOrigin: `50% ${(RULER_Y - TIM_TOP) / TIM_SIZE * 100}%`, transform: `scaleY(${1 - t})`}}>
+					<span key={i} style={{...displayStyle(TIM_SIZE, C.ink), position: 'absolute', left: tx0 + to[i], top: TIM_TOP, transformOrigin: `50% ${((RULER_Y - TIM_TOP) / TIM_SIZE) * 100}%`, transform: `scale(${1 - 0.25 * t}, ${1 - t})`}}>
 						{ch}
 					</span>
 				);
 			})}
-			{/* SOUND rises out of the line and rides the wave; the flood lifts it off the top */}
+			{/* SOUND: flung out of the string, then riding it */}
 			{Array.from(SOUND).map((ch, i) => {
-				const t = prog(f, T.rise[0] + i * 3, T.rise[0] + i * 3 + 16, ease.out);
-				if (t <= 0) return null;
-				const lw = so[i + 1] - so[i];
-				const cx = sx0 + so[i] + lw / 2;
-				const wy = waveY(cx, f, 1, 0);
-				const slope = (waveY(cx + 4, f, 1, 0) - waveY(cx - 4, f, 1, 0)) / 8;
-				const float = Math.min(wy - 18, surface(cx) - 18);
-				const bottom = float;
+				const s = sim[i];
+				if (!s || !s.on) return null;
+				const grow = ease.out(clamp01(s.age / 9));
+				const sx = (1 + 0.55 * s.sq) * lerp(0.55, 1, grow);
+				const sy = (1 - s.sq) * grow;
 				return (
 					<span
 						key={i}
@@ -272,9 +383,9 @@ export const Sound: React.FC<{f: number}> = ({f}) => {
 							...displayStyle(SND_SIZE, C.ink),
 							position: 'absolute',
 							left: sx0 + so[i],
-							top: bottom - SND_SIZE * 0.86,
-							transformOrigin: '50% 86%',
-							transform: `rotate(${Math.atan(slope) * 26}deg) scaleY(${t})`,
+							top: s.y - 3 - SND_SIZE * 0.86,
+							transformOrigin: `${cx[i] - sx0 - so[i]}px ${SND_SIZE * 0.86}px`,
+							transform: `rotate(${s.rot.toFixed(2)}deg) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`,
 						}}
 					>
 						{ch}

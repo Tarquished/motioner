@@ -31,9 +31,17 @@ for k, f in enumerate(TIMING_LETTERS):
 # the keyframe diamonds pop together with TIMING letters, so the letter plucks carry them
 
 # 03 sound: the line becomes waves, SOUND rises and rides, the wave floods
-add(type="whoosh", frame=312, frames=24, gain_db=-6, label="TIMING sinks")
+add(type="whoosh", frame=312, frames=24, gain_db=-6, label="TIMING falls into the string")
+add(type="thud", frame=314, gain_db=-2, label="first letter hits the string")
+add(type="pluck", frame=324, degree=0, octave=3, gain_db=0, label="string twangs")
+# SOUND is flung out of the string one letter at a time (popcorn), rising in pitch
 for i in range(5):
-    add(type="pluck", frame=TL["sound"]["rise"][0] + i * 3 + 4, degree=[0, 2, 4, 5, 7][i], octave=5, gain_db=-2, pan=-0.4 + 0.2 * i, label="SOUND letter")
+    add(type="pop", frame=330 + i * 4, degree=[0, 2, 4, 5, 7][i], octave=5, gain_db=-1, pan=-0.4 + 0.2 * i, label="letter flung out")
+# every kick plucks the string (low), the off-beats pluck it lightly
+for f in [360, 390, 420, 450]:
+    add(type="pluck", frame=f, degree=0, octave=3, gain_db=1, label="string pluck")
+for f in [375, 405, 435]:
+    add(type="pluck", frame=f, degree=4, octave=3, gain_db=-5, label="string off-beat")
 add(type="riser", frame=TL["sound"]["flood"][1] - 5, frames=44, label="riser into the flood")
 add(type="whoosh", frame=462, frames=40, gain_db=-3, label="wave floods")
 
