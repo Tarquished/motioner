@@ -73,6 +73,7 @@ Write per boundary: `name (frames): GOOD/WEAK/BROKEN. What you saw, which frames
 - A push-through changes almost every pixel at the swap: one POP there is expected if the zoomed element's fill already equals the new background on the frame before the swap.
 - A beat pulse (equalizer, dot pulse) raises a small local jump on the beat: give it a 2-frame attack so it is a pulse, not a one-frame POP.
 - BLANK on the first frames of a film that opens on an empty frame before its seed appears.
+- A zoom or dive: the whole frame moves, so GHOST, TELEPORT and JERK appear along its length (`kind: zoom`); judge the seam at the arrival by zoomed crops, and note that an intended camera shake on landing raises a HANDOFF-JUMP at the arrival frame.
 
 ## Creative check (against the benchmark)
 

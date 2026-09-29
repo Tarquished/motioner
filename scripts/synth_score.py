@@ -24,6 +24,7 @@ score (JSON):
     {"type": "pluck",   "frame": 30, "degree": 0},
     {"type": "whoosh",  "frame": 314, "frames": 30},             # peak on the frame (fastest frame)
     {"type": "whoosh",  "start": 290, "speed": [0, 2.1, 8.4, ...]},   # envelope follows a speed curve
+    {"type": "zoom",    "start": 132, "speed": [0.0, 0.003, ...]},     # Shepard glissando + wind following a camera zoom (log-zoom per frame)
     {"type": "riser",   "frame": 450, "frames": 60},             # ends (peaks) on the frame
     {"type": "impact",  "frame": 450}, {"type": "pop", "frame": 500, "degree": 4},
     {"type": "tick"}, {"type": "click"}, {"type": "type", "frames": [600, 604, 609]},
@@ -278,6 +279,42 @@ def sfx_whoosh(rng, frames=30, fps=60, speed=None, bright=1.0):
     return norm(st, 0.85), align, at
 
 
+def sfx_zoom(rng, speed, fps=60, harmony=None, bright=1.0, octaves_per_unit=0.9):
+    """The sound of a camera zoom: a Shepard glissando (eight octave-spaced partials under a fixed
+    spectral window, so the pitch seems to rise for ever) whose speed of rise follows the zoom, plus wind
+    that opens with the speed. `speed` is the log-zoom per frame of every frame of the move (from the
+    picture's own camera), so loudness, pitch and brightness are the picture's motion."""
+    sp = np.asarray(speed, float)
+    peak = float(sp.max()) or 1.0
+    n = int(len(sp) / fps * SR) + int(0.3 * SR)
+    t = t_of(n)
+    tf = np.arange(len(sp)) / fps
+    e = np.interp(t, tf, sp / peak, right=0.0)
+    env = e ** 1.35
+    cz = np.interp(t, tf, np.cumsum(sp))  # total log-zoom so far
+    octs = cz * octaves_per_unit
+    f0 = 55.0 if harmony is None else hz(harmony.degree(0, 1)) * 1.0
+    L = np.zeros(n)
+    R = np.zeros(n)
+    for i in range(8):
+        pos = (i + octs) % 8.0
+        freq = f0 * 2 ** pos
+        amp = np.sin(np.pi * pos / 8.0) ** 2
+        for side, det in ((0, -0.004), (1, 0.004)):
+            ph = np.cumsum(freq * (1 + det)) / SR
+            v = np.sin(2 * np.pi * ph) * amp
+            if side == 0:
+                L += v
+            else:
+                R += v
+    tone = np.stack([L, R], 1) * 0.11 * env[:, None]
+    wind = filt(noise(n, rng), "lp", 400 + 7000 * bright * e) * env
+    wind2 = filt(noise(n, rng), "hp", 2500) * 0.18 * env
+    st = tone + np.stack([wind + wind2, np.roll(wind + wind2, 71)], 1) * 0.55
+    st[-int(0.01 * SR):] *= np.linspace(1, 0, int(0.01 * SR))[:, None]
+    return norm(st, 0.85), "start", 0
+
+
 def sfx_riser(rng, frames=60, fps=60, harmony=None):
     dur = frames / fps
     n = int(dur * SR)
@@ -519,6 +556,8 @@ def sfx_for(item, rng, harmony, ir, fps):
     octave = item.get("octave", 5)
     if typ == "whoosh":
         return sfx_whoosh(rng, item.get("frames", 30), fps, item.get("speed"), item.get("bright", 1.0))
+    if typ == "zoom":
+        return sfx_zoom(rng, item["speed"], fps, harmony, item.get("bright", 1.0), item.get("octaves_per_unit", 0.9))
     if typ == "riser":
         return sfx_riser(rng, item.get("frames", 60), fps, harmony)
     if typ == "swell":
@@ -554,7 +593,7 @@ def sfx_for(item, rng, harmony, ir, fps):
     raise SystemExit(f"unknown sfx type {typ!r}")
 
 
-ROLE = {"whoosh": "whoosh", "riser": "riser", "swell": "riser", "impact": "impact", "thud": "impact_small",
+ROLE = {"zoom": "whoosh", "whoosh": "whoosh", "riser": "riser", "swell": "riser", "impact": "impact", "thud": "impact_small",
         "sub": "sub", "pop": "pop", "pluck": "pop", "stab": "impact_small", "tick": "tick", "click": "click",
         "type": "key", "glitch": "glitch", "shutter": "click", "chime": "success", "burst": "impact_small"}
 
@@ -597,7 +636,9 @@ def main():
             cue = {"frame": fr, "sound": name, "align": sounds[name]["align"], "label": item.get("label", item["type"])}
             if item["type"] in ("riser", "swell") and "gain_db" not in item:
                 cue["gain_db"] = -6
-            for kk in ("gain_db", "pan", "duck_db"):
+            if item["type"] == "zoom":
+                cue["sync"] = False  # a Shepard sweep has no sharp point for cross-correlation
+            for kk in ("gain_db", "pan", "duck_db", "sync"):
                 if kk in item:
                     cue[kk] = item[kk]
             cues.append(cue)

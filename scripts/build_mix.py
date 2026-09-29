@@ -28,7 +28,8 @@ the frame; whooshes on the fastest frame), end (a riser's peak/resolution on the
 start), peakcut (everything before the peak is cut so nothing sounds early; for booms with long
 lead-ins). Per sound: role (sets default level and ducking), gain_db, trim_start_ms, max_ms,
 fade_out_ms. Per cue: gain_db, rate (varispeed; also shifts pitch), pan -1..1, duck_db, max_ms,
-fade_out_ms, label.
+fade_out_ms, label, sync (false = a diffuse sound such as a zoom sweep that has no sharp point to find;
+sync_check skips it).
 
 Outputs next to --out: the mix WAV, <name>.music.wav and <name>.sfx.wav stems, <name>.cues.json
 (actual placement of every cue, used by sync_check.py), <name>.cues.md and <name>.timeline.png.
@@ -405,6 +406,7 @@ def main():
             "start_s": round(start / SR, 5), "rate": rate, "gain_db": c.get("gain_db", 0), "pan": pan,
             "length_ms": round(len(x) / SR * 1000, 1), "lead_trimmed_ms": s["lead_trimmed_ms"],
             "duck_db": float(c.get("duck_db", ROLE_DUCK.get(s["role"], 0.0))), "label": c.get("label", c["sound"]),
+            "sync": bool(c.get("sync", True)),
             "_x": x,
         })
     placed.sort(key=lambda c: c["event_s"])

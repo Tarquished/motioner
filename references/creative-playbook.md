@@ -11,6 +11,18 @@ Write these before any code. If one is missing, the film will be a slideshow.
 3. **Becomes chain**: one line that lists what turns into what, across the whole film. Example (opus_5): `word → its period → pill → button → aperture → photo → grid → full-bleed photo → slider knob → lens → next photo → phone → browser → check → black disc → frame on a wall → aperture → pill → dot → word`. Every arrow is a transformation you can draw; none is a cut or a fade.
 4. **Bookend**: how the last frame answers the first (the dot returns as the period, the film loops, the logo shrinks back to the seed, the opening question gets its answer).
 
+## Concept archetypes (pick a different one for each film)
+
+| Archetype | Idea | Example |
+|---|---|---|
+| Seed journey | one object (a dot) becomes every scene | `examples/reel02` |
+| Word as world | the letters of the name are the chapters (t is a timeline, O a portal, the dot of i a button) | `examples/reel03` |
+| Nested dive | one continuous zoom through windows inside windows, each world its own visual language, the last window opens onto the first | `examples/reel04-dive` |
+| Cause chain | each scene physically triggers the next (a hit, a light, a pulse) | not built yet |
+| Object under the lens | one real object (a card, a film strip, a sheet) is folded, cut and printed into the whole film | seen in other attempts, needs great craft |
+
+Whichever you pick: a seed or window the viewer can name, a change of visual language every chapter, a reason for each transition (a window, a pull, a physical trigger), and a last frame that answers the first.
+
 ## 2. Beat map
 
 Pick the tempo first (120 BPM = 30 frames per beat at 60 fps, 128 BPM = 28.125, 140 BPM = 25.7). Put every chapter change on a whole beat, strongly prefer bar starts (every 4 beats). A 15 s film at 128 BPM is 32 beats (8 bars):
@@ -50,6 +62,7 @@ Pick a different one for each boundary; two in a row of the same kind feel mecha
 | Wipe with a shape of the story | diagonal band, stepped stairs, slats retracting in a stagger, a tube snaking across: the wipe object has its own colour and edge | `SlatReveal`, `BandWipe` |
 | Burst | a small object pops into radial lines and a ring on impact; the burst hides a swap underneath | `Burst` |
 | Montage cut | a hard cut on a half beat with a different colour field; allowed only in the accelerating section, each cut with its own hit | cut + `RgbSplit` on the incoming frame |
+| Nested dive | the camera falls into a window (a dot, a sun, a core, a sphere) that turns out to be the next world; six worlds in one unbroken zoom, the last window opens onto the first | canvas engine in `examples/reel04-dive`, see [dive technique](dive-technique.md) |
 | Recap wall | the frame splits into a grid of the film's earlier scenes, all still moving, then collapses into the logo | `Sequence`s in a grid |
 
 The morph rules in [morph transitions](morph-transitions.md) still apply to every one of these: one carrier, no ghosting, live content, matched shadow and velocity at the handoffs.

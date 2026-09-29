@@ -119,6 +119,9 @@ def main():
                 if j != i and (o["file"] == c["file"] or fam(o) == fam(c)) and o["frame"] != c["frame"]]
         same_gap.append(min(gaps) if gaps else None)
     for ci, c in enumerate(cues):
+        if c.get("sync", True) is False:
+            results.append({"frame": c["frame"], "label": c.get("label", ""), "status": "SKIP"})
+            continue
         f = c["file"]
         path = Path(f) if Path(f).is_absolute() else root / f
         if not path.is_file() and isinstance(data, dict):

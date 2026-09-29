@@ -16,6 +16,7 @@ const CONFIG = {
 	timeline: 'src/timeline.json', // must contain fps, width, height, durationInFrames
 	// Sound, option A (default, like the benchmark films): every sound written in code.
 	// makeScore writes audio/score.json from the timeline; synth_score.py renders music + SFX and a cue sheet.
+	exportEvents: null, // e.g. 'scripts/export_events.mjs': numbers the picture computes (camera, physics) that the score follows
 	makeScore: 'scripts/make_score.py', // or null to use option B
 	score: 'audio/score.json',
 	synthDir: 'audio/synth',
@@ -52,6 +53,7 @@ const tmpVideo = CONFIG.out.replace(/\.mp4$/, '.video.mp4');
 const seconds = (TL.durationInFrames / TL.fps).toFixed(6);
 
 if (CONFIG.makeScore) {
+	if (CONFIG.exportEvents) run('node', [CONFIG.exportEvents]);
 	run(py, [CONFIG.makeScore]);
 	run(py, [s('synth_score.py'), CONFIG.score, '--out', CONFIG.synthDir]);
 	run(py, [s('build_mix.py'), path.join(CONFIG.synthDir, 'cues.json'), '--out', CONFIG.mix]);

@@ -1,0 +1,68 @@
+[
+ {
+  "name": "word-assembles",
+  "start": 4,
+  "end": 130,
+  "kind": "morph"
+ },
+ {
+  "name": "dive-0-word-to-ridge",
+  "start": 132,
+  "end": 252,
+  "kind": "zoom",
+  "handoffs": [
+   240
+  ]
+ },
+ {
+  "name": "dive-1-ridge-to-tiles",
+  "start": 352,
+  "end": 492,
+  "kind": "zoom",
+  "handoffs": [
+   480
+  ]
+ },
+ {
+  "name": "dive-2-tiles-to-flow",
+  "start": 592,
+  "end": 732,
+  "kind": "zoom",
+  "handoffs": [
+   720
+  ]
+ },
+ {
+  "name": "dive-3-flow-to-city",
+  "start": 832,
+  "end": 972,
+  "kind": "zoom",
+  "handoffs": [
+   960
+  ]
+ },
+ {
+  "name": "dive-4-city-to-ink",
+  "start": 1072,
+  "end": 1212,
+  "kind": "zoom",
+  "handoffs": [
+   1200
+  ]
+ },
+ {
+  "name": "dive-5-ink-to-word",
+  "start": 1312,
+  "end": 1452,
+  "kind": "zoom",
+  "handoffs": [
+   1440
+  ]
+ },
+ {
+  "name": "end-card",
+  "start": 1440,
+  "end": 1560,
+  "kind": "morph"
+ }
+]
