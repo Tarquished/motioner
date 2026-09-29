@@ -24,7 +24,7 @@ score (JSON):
     {"type": "pluck",   "frame": 30, "degree": 0},
     {"type": "whoosh",  "frame": 314, "frames": 30},             # peak on the frame (fastest frame)
     {"type": "whoosh",  "start": 290, "speed": [0, 2.1, 8.4, ...]},   # envelope follows a speed curve
-    {"type": "zoom",    "start": 132, "speed": [0.0, 0.003, ...]},     # Shepard glissando + wind following a camera zoom (log-zoom per frame)
+    {"type": "zoom",    "start": 132, "bar": 2, "speed": [0.0, 0.003, ...]},  # soft air rush + a swell that lands on the arrival chord (bar), following a camera zoom (log-zoom per frame)
     {"type": "riser",   "frame": 450, "frames": 60},             # ends (peaks) on the frame
     {"type": "impact",  "frame": 450}, {"type": "pop", "frame": 500, "degree": 4},
     {"type": "tick"}, {"type": "click"}, {"type": "type", "frames": [600, 604, 609]},
@@ -279,40 +279,78 @@ def sfx_whoosh(rng, frames=30, fps=60, speed=None, bright=1.0):
     return norm(st, 0.85), align, at
 
 
-def sfx_zoom(rng, speed, fps=60, harmony=None, bright=1.0, octaves_per_unit=0.9):
-    """The sound of a camera zoom: a Shepard glissando (eight octave-spaced partials under a fixed
-    spectral window, so the pitch seems to rise for ever) whose speed of rise follows the zoom, plus wind
-    that opens with the speed. `speed` is the log-zoom per frame of every frame of the move (from the
-    picture's own camera), so loudness, pitch and brightness are the picture's motion."""
+def _smooth(x, ms=45):
+    """moving average so a per-frame speed curve never zippers"""
+    k = max(1, int(ms / 1000 * SR))
+    c = np.cumsum(np.insert(x, 0, 0.0))
+    y = (c[k:] - c[:-k]) / k
+    return np.concatenate([np.full(k // 2, y[0]), y, np.full(len(x) - len(y) - k // 2, y[-1])])
+
+
+def sfx_zoom(rng, speed, fps=60, harmony=None, bright=1.0, bar=0, style="soft", octaves_per_unit=0.9):
+    """The sound of a camera zoom. `speed` is the log-zoom per frame of every frame of the move (from the
+    picture's own camera), so loudness, brightness and glide are the picture's motion.
+
+    style "soft" (default): a low air rush (noise under 3 kHz that opens with the speed) and a swell made
+    of the CHORD the dive lands on (root, third, fifth, octave as soft sines plus a sub), gliding up from
+    two semitones below and arriving exactly on the chord tones when the zoom ends, so the sound resolves
+    into the arrival chord instead of fighting the music. Nothing above 3 kHz: comfortable on headphones.
+    style "shepard": eight octave-spaced partials under a fixed window (endless rising pitch). It sweeps
+    through every pitch and is bright; it was rejected as uncomfortable in a real film, use sparingly."""
     sp = np.asarray(speed, float)
     peak = float(sp.max()) or 1.0
-    n = int(len(sp) / fps * SR) + int(0.3 * SR)
+    n = int(len(sp) / fps * SR) + int(0.35 * SR)
     t = t_of(n)
     tf = np.arange(len(sp)) / fps
     e = np.interp(t, tf, sp / peak, right=0.0)
-    env = e ** 1.35
-    cz = np.interp(t, tf, np.cumsum(sp))  # total log-zoom so far
-    octs = cz * octaves_per_unit
-    f0 = 55.0 if harmony is None else hz(harmony.degree(0, 1)) * 1.0
-    L = np.zeros(n)
-    R = np.zeros(n)
-    for i in range(8):
-        pos = (i + octs) % 8.0
-        freq = f0 * 2 ** pos
-        amp = np.sin(np.pi * pos / 8.0) ** 2
-        for side, det in ((0, -0.004), (1, 0.004)):
-            ph = np.cumsum(freq * (1 + det)) / SR
-            v = np.sin(2 * np.pi * ph) * amp
-            if side == 0:
-                L += v
-            else:
-                R += v
-    tone = np.stack([L, R], 1) * 0.11 * env[:, None]
-    wind = filt(noise(n, rng), "lp", 400 + 7000 * bright * e) * env
-    wind2 = filt(noise(n, rng), "hp", 2500) * 0.18 * env
-    st = tone + np.stack([wind + wind2, np.roll(wind + wind2, 71)], 1) * 0.55
-    st[-int(0.01 * SR):] *= np.linspace(1, 0, int(0.01 * SR))[:, None]
-    return norm(st, 0.85), "start", 0
+    if style == "shepard":
+        env = _smooth(e, 30) ** 1.35
+        cz = np.interp(t, tf, np.cumsum(sp))
+        octs = cz * octaves_per_unit
+        f0 = 55.0 if harmony is None else hz(harmony.degree(0, 1))
+        L = np.zeros(n)
+        R = np.zeros(n)
+        for i in range(8):
+            pos = (i + octs) % 8.0
+            freq = f0 * 2 ** pos
+            amp = np.sin(np.pi * pos / 8.0) ** 2
+            for side, det in ((0, -0.004), (1, 0.004)):
+                v = np.sin(2 * np.pi * np.cumsum(freq * (1 + det)) / SR) * amp
+                if side == 0:
+                    L += v
+                else:
+                    R += v
+        tone = np.stack([L, R], 1) * 0.11 * env[:, None]
+        wind = filt(noise(n, rng), "lp", 400 + 7000 * bright * e) * env
+        st = tone + np.stack([wind, np.roll(wind, 71)], 1) * 0.55
+    else:
+        es = _smooth(e, 90)
+        env = es ** 1.15
+        prog_ = np.clip(np.interp(t, tf, np.cumsum(sp) / (np.sum(sp) or 1.0), right=1.0), 0.0, 1.0)  # 0 -> 1 across the move
+        # air rush: soft noise, brightness follows the speed but never passes 3 kHz
+        air = filt(noise(n, rng), "lp", 350 + 2400 * bright * es) * env
+        air = filt(air, "hp", 90)
+        air = np.stack([air, filt(noise(n, rng), "lp", 350 + 2400 * bright * es) * env * 0.9], 1)
+        # chord swell that lands on the arrival chord
+        notes = (harmony.chord(bar, 3) + [harmony.chord(bar, 4)[0]]) if harmony else [43, 47, 50, 55]
+        gl = 2 ** (-(1 - prog_) ** 1.5 * 2.0 / 12.0)  # from two semitones below up to the chord tone
+        L = np.zeros(n)
+        R = np.zeros(n)
+        for j, m in enumerate(notes):
+            f = hz(m) * gl
+            for side, det in ((0, -0.0035), (1, 0.0035)):
+                v = np.sin(2 * np.pi * np.cumsum(f * (1 + det)) / SR) + 0.25 * np.sin(2 * np.pi * np.cumsum(f * 2 * (1 + det)) / SR)
+                if side == 0:
+                    L += v * (0.7 if j % 2 else 1.0)
+                else:
+                    R += v * (1.0 if j % 2 else 0.7)
+        sub = np.sin(2 * np.pi * np.cumsum(hz(notes[0] - 12) * gl) / SR)
+        swell = (es ** 1.6)[:, None]
+        tone = np.stack([filt(L, "lp", 2200), filt(R, "lp", 2200)], 1) * swell * 0.10 + np.stack([sub, sub], 1) * swell * 0.15
+        st = air * 0.55 + tone
+    st[-int(0.03 * SR):] *= np.linspace(1, 0, int(0.03 * SR))[:, None]
+    st[: int(0.01 * SR)] *= np.linspace(0, 1, int(0.01 * SR))[:, None]
+    return norm(st, 0.8), "start", 0
 
 
 def sfx_riser(rng, frames=60, fps=60, harmony=None):
@@ -557,7 +595,7 @@ def sfx_for(item, rng, harmony, ir, fps):
     if typ == "whoosh":
         return sfx_whoosh(rng, item.get("frames", 30), fps, item.get("speed"), item.get("bright", 1.0))
     if typ == "zoom":
-        return sfx_zoom(rng, item["speed"], fps, harmony, item.get("bright", 1.0), item.get("octaves_per_unit", 0.9))
+        return sfx_zoom(rng, item["speed"], fps, harmony, item.get("bright", 1.0), item.get("bar", 0), item.get("style", "soft"), item.get("octaves_per_unit", 0.9))
     if typ == "riser":
         return sfx_riser(rng, item.get("frames", 60), fps, harmony)
     if typ == "swell":
