@@ -79,6 +79,8 @@ export class Topple implements Link {
 		const eT = this.path.tangent(this.pLast);
 		this.endDir = [eT[0], 0, eT[2]];
 		this.endPos = this.path.at(this.pLast);
+		// the bead meets the first domino: the first big hit of the film
+		this.events.push({f: this.f0, kind: 'bead_hit', v: roll.vHit});
 		// contact events
 		for (const c of sim.contacts) {
 			this.events.push({f: c.f, kind: 'clack', i: c.i, v: c.v});

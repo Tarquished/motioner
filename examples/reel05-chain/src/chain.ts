@@ -42,6 +42,7 @@ export const focusAt = (f: number): V3 => {
 };
 reg.focus = focusAt;
 reg.fFlood = launch.fButton;
+reg.fHit = roll.f1;
 reg.button = launch.buttonPos;
 finale.at = [(letters.xs[0] + letters.xs[letters.xs.length - 1]) / 2, 3, letters.zc];
 reg.linkAt = (f) => {

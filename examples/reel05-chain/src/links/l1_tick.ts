@@ -17,7 +17,7 @@ export class Tick implements Link {
 	f1: number;
 	events: Ev[] = [];
 	L = 9;
-	th0 = (-16 * Math.PI) / 180;
+	th0 = (-20 * Math.PI) / 180;
 	rob = 0.45;
 	pivot: V3;
 	fRelease: number;

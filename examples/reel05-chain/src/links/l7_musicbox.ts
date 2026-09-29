@@ -51,10 +51,10 @@ export class MusicBox implements Link {
 	constructor(gears: Gears) {
 		this.gears = gears;
 		this.f0 = gears.fTrip;
-		this.fBrake = gears.fTrip + 8;
+		this.fBrake = gears.lev.trip + 12;
 		this.fN0 = FN0;
 		const lp = gears.leverPivot;
-		this.brakeX = lp[0] + 1.2;
+		this.brakeX = gears.wireX;
 		this.zc = gears.cradle.O[2];
 		this.xd0 = this.brakeX + 2.6;
 		// the drum angle as a function of time

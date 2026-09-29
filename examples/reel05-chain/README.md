@@ -10,7 +10,7 @@ One continuous camera moves along a 3D tabletop machine. A pendulum taps a bead;
 - **Chapters** (one visible verb each, shown in the HUD): 01 TICK, 02 ROLL, 03 TOPPLE, 04 LAUNCH, 05 PASS, 06 TURN, 07 PLAY, 08 RISE.
 - **Light as structure**: black studio with one spot that follows the action (0 to 10 s) → the button, and a ring of light expands across the floor and lights the room (10 s) → the room dims to a single pool on the word (23 s onward). The ring is real: every sub-frame is rendered in the dark look and in the lit look, and the two are mixed by the ring radius (`world.ts`, `gfx.ts`), so shadows and highlights are correct on both sides of its edge.
 - **Scale**: the machine grows. The bead is 1.2 units, the dominoes 2.6 to 10, the gears 10, the letters 6 tall: the camera pulls back with it.
-- **Sound**: no music track to follow, the machine is the music. 142 sounds written in code and placed on the frame of the event that makes them (`scripts/make_score.py` reads `audio/events.json`, which `scripts/export_events.mjs` exports from the same TypeScript that draws the picture; instruments in `scripts/synth_machine.py` of the skill).
+- **Sound**: no music track to follow, the machine is the music. 132 sounds written in code and placed on the frame of the event that makes them (`scripts/make_score.py` reads `audio/events.json`, which `scripts/export_events.mjs` exports from the same TypeScript that draws the picture; instruments in `scripts/synth_machine.py` of the skill).
 
 ## How it is built (see `references/chain-technique.md`)
 
@@ -23,13 +23,14 @@ One continuous camera moves along a 3D tabletop machine. A pendulum taps a bead;
 
 ## Measured on the delivered file
 
-verify PASS (1800 frames, 60 fps, h264 yuv420p bt709, AAC); -14.0 LUFS, -1.9 dBTP; 142 cues, 63 verified by cross-correlation (median 0.0 ms, worst 11.5 ms), 64 diffuse (rolls, ticks, sweeps: no sharp point, skipped), 15 overlapping music-box notes and cradle rings whose onsets were checked separately in the delivered audio (0.4 to 0.7 frame, the filter delay). Audio was measured, not heard.
+verify PASS (1800 frames, 60 fps, h264 yuv420p bt709, AAC); -14.0 LUFS, -2.15 dBTP; 132 cues, 65 verified by cross-correlation (median 0.0 ms, worst 10.0 ms), diffuse (rolls, ticks, sweeps: no sharp point, skipped), 15 overlapping music-box notes and cradle rings whose onsets were checked separately in the delivered audio (0.4 to 0.7 frame, the filter delay). Audio was measured, not heard.
 
 ![finale](review/finale.png)
 
 ## Review notes
 
 - Expected flags: FLASH/COLORJUMP at the press (the drop), GHOST/TELEPORT along every camera move.
+- Found and fixed after the first delivery (both were physics that did not match the picture): the first domino tipped before the bead reached it (the bead arrived 18 frames late and the solver had clamped the floor run; a stronger tap fixes it and the gap is now 0.000 at the frame of contact), and the peg of the last gear went through the lever (the lever is now solved against the peg every step so they never overlap, the last gear is a big slow one so the peg presses the lever exactly once). The first contact also got a real boom (impact, sub, wood slam and a chord, 6 dB above the dominoes).
 - Found and fixed while building: the spotlight jumped from the wave head to the ball (POP at the link change: the focus now glides for 18 frames); the pressed button sank under its ring (less travel); the first camera along the music box was static for 8 s (now a slow orbit: macro → high → low from the right → wide); domino wave that ran away (kinematic pushing; replaced by sequential impulses); pendulum quarter period solved so the tap lands on a beat.
 
 ## Run

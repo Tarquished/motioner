@@ -44,6 +44,13 @@ add("sub", byk["tock"][0]["f"], gain_db=-16, label="tock sub")
 rolls = byk["roll"]
 add("roll", start=rolls[0]["f"], speed=rolls[0]["speed"], r=0.6, gain_db=-5, label="roll")
 
+# the bead meets the first domino: the first big hit of the film (a real boom, then a warm chord)
+for e in byk.get("bead_hit", []):
+    add("impact", e["f"], gain_db=-1, label="first hit")
+    add("sub", e["f"], gain_db=-2, label="first hit sub")
+    add("slam", e["f"], gain_db=-3, label="first hit wood")
+    add("wave", e["f"], notes=[43, 50, 55, 62, 67], dur=2.6, gain_db=-9, label="first hit chord")
+
 # 3 TOPPLE: every contact plays the next note of a G dorian run; the wood tok gets lower as the dominoes grow
 DEG = lambda i: round(i * 0.72)
 for e in byk["clack"]:
@@ -124,7 +131,8 @@ score = {
     "fps": fps, "frames": frames, "bpm": 120, "beat0_frame": 60, "key": "G", "scale": "dorian", "seed": 11,
     "chords": CHORDS, "gap_ms": 90, "reverb_s": 2.0, "under_mix_lu": 13, "fade_out_ms": 900,
     "sections": [
-        {"from": 0, "to": 18, "kit": "drone"},
+        {"from": 0, "to": 5, "kit": "drone"},
+        {"from": 5, "to": 18, "kit": "drone", "drop": True},
         {"from": 18, "to": 27, "kit": "groove", "drop": True},
         {"from": 27, "to": 47, "kit": "bed"},
         {"from": 47, "to": 52, "kit": "lift", "drop": True},

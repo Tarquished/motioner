@@ -53,3 +53,6 @@ One take. Waypoints `(frame, position, look-at, fov, aperture)`, written against
 - A held shot: the drum played for 8 s from one angle. Orbit.
 - Light text on a light floor: switch the HUD colour with the lighting (do not rely on `mix-blend-mode: difference`, it fails at mid grey).
 - Cradle balls keep swinging after the scene: do not sound collisions that happen off camera.
+- Check every hand-over numerically before rendering: the gap between the two bodies must be 0.000 on the trigger frame and never negative before it (`scripts/t/contact_test.ts` style test: bead-to-domino gap, peg-to-lever clearance over all frames). A solver that clamps at its lower bound silently makes one link late.
+- A peg that turns past a lever passes it once per revolution. Put the trigger on a slow gear (less than one revolution before the trip), solve the lever against the peg every step (circle against rounded rectangle, latch it), and search the peg phase so the trip lands on the wanted frame.
+- Give the first physical contact of the film a proper hit (impact, sub, wood, a chord): the viewer should feel the chain start.
