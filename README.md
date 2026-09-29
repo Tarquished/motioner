@@ -6,13 +6,12 @@ An Agent Skill (Claude Code and Codex) for making motion graphics, reels and pro
 
 Every frame and every sound of these four films was written in code by an agent using this skill (click a poster to watch):
 
-| | | |
-|---|---|---|
-| [![Motioner film](videos/01-motioner-film.jpg)](videos/01-motioner-film.mp4) | [![Reel 02](videos/02-motioner-reel02.jpg)](videos/02-motioner-reel02.mp4) | [![Reel 03](videos/03-motioner-reel03.jpg)](videos/03-motioner-reel03.mp4) | [![Reel 04](videos/04-motioner-reel04-dive.jpg)](videos/04-motioner-reel04-dive.mp4) |
-|---|---|---|---|
-| **01 · Motioner film** (18.6 s): a product story; cards, frames and thumbnails morph into each other | **02 · Reel 02** (16 s): one coral dot becomes every scene; easing rails, shape morphs, beat, montage | **03 · Reel 03** (18 s): everything is inside the word *motioner*; t becomes a timeline, the line a plucked string, the O every letter of MORPH | **04 · Reel 04, the dive** (27.5 s): one continuous zoom through six nested worlds, from the dot of *motioner.* back to the word; x48,600,000 |
+| | | | | |
+|---|---|---|---|---|
+| [![Motioner film](videos/01-motioner-film.jpg)](videos/01-motioner-film.mp4) | [![Reel 02](videos/02-motioner-reel02.jpg)](videos/02-motioner-reel02.mp4) | [![Reel 03](videos/03-motioner-reel03.jpg)](videos/03-motioner-reel03.mp4) | [![Reel 04](videos/04-motioner-reel04-dive.jpg)](videos/04-motioner-reel04-dive.mp4) | [![Reel 05](videos/05-motioner-reel05-chain.jpg)](videos/05-motioner-reel05-chain.mp4) |
+| **01 · Motioner film** (18.6 s): a product story; cards, frames and thumbnails morph into each other | **02 · Reel 02** (16 s): one coral dot becomes every scene; easing rails, shape morphs, beat, montage | **03 · Reel 03** (18 s): everything is inside the word *motioner*; t becomes a timeline, the line a plucked string, the O every letter of MORPH | **04 · Reel 04, the dive** (27.5 s): one continuous zoom through six nested worlds, from the dot of *motioner.* back to the word; x48,600,000 | **05 · Reel 05, chain reaction** (30 s): a 3D machine that plays itself; a pendulum, a domino wave, a wave of light, gears, a music box and eight letters that spring up, each triggering the next |
 
-Sources: `examples/reel02/`, `examples/reel03/`, `examples/reel04-dive/`.
+Sources: `examples/reel02/`, `examples/reel03/`, `examples/reel04-dive/`, `examples/reel05-chain/`.
 
 It is not just advice. It ships:
 
@@ -31,7 +30,7 @@ It is not just advice. It ships:
 | `verify_video.py` | Size, fps, exact frame count, codec, pixel format, audio length |
 
 - **Reference docs** (`references/`): a frame-by-frame breakdown of 12 benchmark films, a creative playbook (concept in four lines, beat map, transformation catalogue, type that acts) and the nested-world dive technique, morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, review loop, Remotion setup, typography, direction defaults.
-- **Worked examples**: `examples/reel04-dive/` (27 s continuous zoom through six nested worlds: canvas engine, exact window geometry, a score that follows the camera), `examples/reel03/` (18 s reel built from the letters of one word), `examples/reel02/` (16 s brand reel: seed dot, beat-locked chapters, kinetic type, montage, synthesized score) and `examples/papertrail/` (14.5 s product film using every morph type), each with review sheets and the glitches the tools caught.
+- **Worked examples**: `examples/reel05-chain/` (30 s cause chain in 3D: simulated pendulum, dominoes, see-saw, cradle, gears, music box and rising letters, a wave of light rendered by mixing two lighting passes, soft shadows and depth of field by accumulation, every sound on the frame of its cause), `examples/reel04-dive/` (27 s continuous zoom through six nested worlds: canvas engine, exact window geometry, a score that follows the camera), `examples/reel03/` (18 s reel built from the letters of one word), `examples/reel02/` (16 s brand reel: seed dot, beat-locked chapters, kinetic type, montage, synthesized score) and `examples/papertrail/` (14.5 s product film using every morph type), each with review sheets and the glitches the tools caught.
 
 ![Reel 02, whole film](examples/reel02/review/film.png)
 

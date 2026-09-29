@@ -18,7 +18,7 @@ Write these before any code. If one is missing, the film will be a slideshow.
 | Seed journey | one object (a dot) becomes every scene | `examples/reel02` |
 | Word as world | the letters of the name are the chapters (t is a timeline, O a portal, the dot of i a button) | `examples/reel03` |
 | Nested dive | one continuous zoom through windows inside windows, each world its own visual language, the last window opens onto the first | `examples/reel04-dive` |
-| Cause chain | each scene physically triggers the next (a hit, a light, a pulse) | not built yet |
+| Cause chain | each scene physically triggers the next (a tap, a slam, a wave of light, a pulse along a cable); the machine plays its own soundtrack | `examples/reel05-chain`, see [chain technique](chain-technique.md) |
 | Object under the lens | one real object (a card, a film strip, a sheet) is folded, cut and printed into the whole film | seen in other attempts, needs great craft |
 
 Whichever you pick: a seed or window the viewer can name, a change of visual language every chapter, a reason for each transition (a window, a pull, a physical trigger), and a last frame that answers the first.

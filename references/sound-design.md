@@ -126,3 +126,8 @@ Each cue is found by cross-correlation near its planned time (for a sound repeat
 ## Honest listening
 
 If you cannot hear audio, say so. Build on measurements (shape, alignment, sync, level over music, loudness, true peak), export the stems (`mix.music.wav`, `mix.sfx.wav`) and a short excerpt around the densest moment for the user, and name the subjective judgements you could not make.
+
+
+## Physical-event instruments (cause-chain films)
+
+`scripts/synth_machine.py` (loaded by `synth_score.py`) makes one sound per physical event: `tock` (wood mallet), `pin`, `roll` (noise that follows a measured speed curve, texture at the rotation rate; give `speed` per frame and `r`), `clack` (dry click plus a marimba note, `midi`), `slam`, `launch`, `button`, `wave` (a warm chord that blooms with a wave of light), `zap` (a rising chirp for a pulse along a cable, `frames`), `led`, `pawl`, `cradle` (steel tick plus one chord tone per ball, `notes`), `paddle`, `gear` (one tick per tooth, `tone`), `lever`, `motor` (`frames`), `mbox` (music-box tooth, `midi`), `letter` (thud plus a chord tone), `period`, `tap`. All are soft (centroid 0.8 to 2.6 kHz). Feed them from an events file exported by the picture's own code (`references/chain-technique.md`). Keep the bed far under the mix (`under_mix_lu` 12 to 13) when the machine is the music, mark diffuse cues `sync: false`, and check melodic notes with a band-pass onset test on the delivered audio when cross-correlation is ambiguous.

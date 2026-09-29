@@ -1,0 +1,10 @@
+[
+ {"name":"tick to roll","start":54,"end":72,"kind":"hit"},
+ {"name":"roll to topple","start":200,"end":222,"kind":"hit"},
+ {"name":"topple to launch","start":490,"end":514,"kind":"hit"},
+ {"name":"launch to flood","start":590,"end":640,"kind":"flood"},
+ {"name":"flood to cradle","start":640,"end":700,"kind":"move"},
+ {"name":"cradle to gears","start":694,"end":714,"kind":"hit"},
+ {"name":"gears to music box","start":856,"end":900,"kind":"hit"},
+ {"name":"music box to letters","start":1376,"end":1420,"kind":"hit"}
+]

@@ -1,0 +1,24 @@
+{
+  "name": "motioner-reel05-chain",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio src/index.ts",
+    "lint": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "stills": "node scripts/stills.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@remotion/cli": "^4.0.529",
+    "@types/react": "^19.2.7",
+    "@types/three": "^0.186.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "remotion": "^4.0.529",
+    "three": "^0.186.1",
+    "typescript": "^5.9.3"
+  }
+}

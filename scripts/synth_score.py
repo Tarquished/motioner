@@ -530,6 +530,8 @@ KITS = {
     "lift": {"pad": 0.9, "kick": 1, "hat16": 1, "clap": 1, "bass": 1, "arp": 0.6, "bright": 2200},
     "montage": {"pad": 0.6, "kick": 1, "hat16": 1, "clap_all": 1, "bass": 1, "stab8": 1, "bright": 2600},
     "outro": {"pad": 1.0, "bright": 1500, "final": 1},
+    "drone": {"pad": 0.55, "bright": 520},
+    "bed": {"pad": 0.85, "bass": 1, "bright": 1000},
 }
 
 
@@ -620,6 +622,9 @@ def build_music(score, harmony, rng, n_total, ir):
 def sfx_for(item, rng, harmony, ir, fps):
     typ = item["type"]
     octave = item.get("octave", 5)
+    from synth_machine import MACHINE  # instruments for physical events (cause-chain films)
+    if typ in MACHINE:
+        return MACHINE[typ](item, rng, harmony, ir, fps)
     if typ == "whoosh":
         return sfx_whoosh(rng, item.get("frames", 30), fps, item.get("speed"), item.get("bright", 1.0))
     if typ == "zoom":
@@ -692,13 +697,13 @@ def main():
         for j, fr in enumerate(hits):
             key = json.dumps({kk: vv for kk, vv in item.items() if kk not in ("frame", "start", "label", "gain_db", "pan")}, sort_keys=True)
             # repeated small sounds get 3 takes (a new take per hit or per entry) so they never machine-gun
-            variant = (j if frames else k) % 3 if item["type"] in ("type", "tick", "click", "pop") else 0
+            variant = (j if frames else k) % 3 if item["type"] in ("type", "tick", "click", "pop", "gear", "clack", "cradle", "tap", "pin", "lever", "pawl", "paddle", "mbox") else 0
             name = f"{item['type']}_{hashlib.md5((key + str(variant)).encode()).hexdigest()[:6]}"
             if name not in sounds:
                 r = np.random.default_rng(seed * 1000 + k * 7 + variant)
                 x, align, at = sfx_for(item, r, harmony, ir, fps)
                 write_wav(out / "sfx" / f"{name}.wav", x)
-                sounds[name] = {"file": f"sfx/{name}.wav", "role": ROLE[item["type"]], "align": align}
+                sounds[name] = {"file": f"sfx/{name}.wav", "role": ROLE.get(item["type"]) or __import__("synth_machine").MACHINE_ROLE[item["type"]], "align": align}
             cue = {"frame": fr, "sound": name, "align": sounds[name]["align"], "label": item.get("label", item["type"])}
             if item["type"] in ("riser", "swell") and "gain_db" not in item:
                 cue["gain_db"] = -6
