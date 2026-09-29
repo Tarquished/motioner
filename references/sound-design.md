@@ -19,7 +19,7 @@ python scripts/sync_check.py out/film.mp4 public/audio/mix.cues.json --root audi
 | The seed appears / an element pops in | `pop` (degree in the key) | first visible frame |
 | Each bounce, each item of a set arriving | `pluck` or `pop` climbing the chord (degrees 0, 2, 4, 7) | contact frame |
 | The drop (first flood, big reveal) | `riser` ending 5 frames early (inside the silence gap), `impact` on the frame; the section is `"drop": true` | flood start |
-| A camera zoom or dive | `zoom` with `speed` = the camera's log-zoom per frame (exported from the picture's own camera): an air rush under 3 kHz plus a swell of the arrival chord (`bar`) gliding up into place, so loudness and brightness are the motion; `sync: false`. Avoid bright, wide sweeps: a Shepard glissando was rejected as uncomfortable | dive start |
+| A camera zoom or dive | `zoom` with `speed` = the camera's log-zoom per frame (exported from the picture's own camera): the arrival chord (`bar`) as pure tones gliding up an octave with the zoom's progress and settling onto the chord tones as it lands, amplitude = the smoothed zoom speed, nothing above 2 kHz (default `style: "glide"`); `sync: false`. Avoid bright, wide sweeps: a Shepard glissando was rejected as uncomfortable | dive start |
 | A flood's edge, a camera move, a carrier flight | `whoosh` with `frame` = measured fastest frame, `frames` = move length; or `start` + `speed` from `speedCurve()` so the envelope is the move | fastest frame |
 | A word slamming in | `thud` (low) | landing frame |
 | A shape changing | `stab` (chord) | morph start (on the beat) |

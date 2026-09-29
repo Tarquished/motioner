@@ -287,11 +287,16 @@ def _smooth(x, ms=45):
     return np.concatenate([np.full(k // 2, y[0]), y, np.full(len(x) - len(y) - k // 2, y[-1])])
 
 
-def sfx_zoom(rng, speed, fps=60, harmony=None, bright=1.0, bar=0, style="soft", octaves_per_unit=0.9):
+def sfx_zoom(rng, speed, fps=60, harmony=None, bright=1.0, bar=0, style="glide", octaves_per_unit=0.9):
     """The sound of a camera zoom. `speed` is the log-zoom per frame of every frame of the move (from the
     picture's own camera), so loudness, brightness and glide are the picture's motion.
 
-    style "soft" (default): a low air rush (noise under 3 kHz that opens with the speed) and a swell made
+    style "glide" (default, the cleanest): the arrival chord as pure tones (sine plus a soft second and
+    third harmonic, nothing above 2.6 kHz) that glides UP one octave following the zoom's own progress,
+    fast while the zoom is fast and settling gently onto the chord tones exactly when the zoom lands, with
+    only a faint air layer. The chord moves in parallel, so it is consonant all the way. Amplitude is the
+    smoothed zoom speed, so it swells with the rush and fades into the arrival (no drone, no sub).
+    style "soft": a low air rush (noise under 3 kHz that opens with the speed) and a swell made
     of the CHORD the dive lands on (root, third, fifth, octave as soft sines plus a sub), gliding up from
     two semitones below and arriving exactly on the chord tones when the zoom ends, so the sound resolves
     into the arrival chord instead of fighting the music. Nothing above 3 kHz: comfortable on headphones.
@@ -323,6 +328,29 @@ def sfx_zoom(rng, speed, fps=60, harmony=None, bright=1.0, bar=0, style="soft", 
         tone = np.stack([L, R], 1) * 0.11 * env[:, None]
         wind = filt(noise(n, rng), "lp", 400 + 7000 * bright * e) * env
         st = tone + np.stack([wind, np.roll(wind, 71)], 1) * 0.55
+    elif style == "glide":
+        es = _smooth(e, 70)
+        env = es ** 0.8
+        end = int(len(sp) / fps * SR)
+        fade = np.clip((end - np.arange(n)) / (0.12 * SR), 0.0, 1.0)  # fully out shortly before the move ends
+        att = np.clip(t / 0.11, 0.0, 1.0)
+        env = env * fade * fade * (3 - 2 * fade) * att * att * (3 - 2 * att)  # soft attack, fully out before the move ends
+        prog_ = np.clip(np.interp(t, tf, np.cumsum(sp) / (np.sum(sp) or 1.0), right=1.0), 0.0, 1.0)
+        notes = (harmony.chord(bar, 3) + [harmony.chord(bar, 4)[0]]) if harmony else [43, 47, 50, 55]
+        gain = [1.0, 0.55, 0.7, 0.5]
+        pan = [0.0, -0.35, 0.35, 0.0]
+        gl = 2 ** (-(1 - prog_))  # one octave below -> the chord tone, following the zoom
+        L = np.zeros(n)
+        R = np.zeros(n)
+        for m, g_, p_ in zip(notes, gain, pan):
+            f = hz(m) * gl
+            ph = np.cumsum(f) / SR
+            v = (np.sin(2 * np.pi * ph) + 0.22 * np.sin(4 * np.pi * ph) + 0.07 * np.sin(6 * np.pi * ph)) * g_
+            L += v * math.cos((p_ + 1) * math.pi / 4)
+            R += v * math.sin((p_ + 1) * math.pi / 4)
+        tone = np.stack([filt(L, "lp", 1900), filt(R, "lp", 1900)], 1) * env[:, None] * 0.16
+        air = filt(filt(noise(n, rng), "lp", 250 + 950 * bright * es), "hp", 180) * env * 0.035
+        st = tone + np.stack([air, np.roll(air, 43)], 1)
     else:
         es = _smooth(e, 90)
         env = es ** 1.15

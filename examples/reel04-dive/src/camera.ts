@@ -1,17 +1,22 @@
 /* One continuous camera: dive i zooms into world i's window until world i+1 fills the frame.
  * Pure functions of the frame (no DOM), so the score script can use the same numbers. */
 import {CX, CY, RD} from './common';
-import {smoothTrack} from './motioner/motion';
+import {Easing} from 'remotion';
+import {clamp01, ease} from './motioner/motion';
 import TL from './timeline.json';
 import {NW, WORLDS} from './worlds';
 
-const keys: {f: number; v: number}[] = [{f: 0, v: 0}];
-for (let i = 0; i < NW; i++) {
-	keys.push({f: TL.S[i], v: i + 0.05});
-	keys.push({f: TL.A[i + 1], v: i + 1});
-}
-keys.push({f: TL.durationInFrames, v: NW + 0.05});
-export const uAt = (f: number) => smoothTrack(f, keys);
+/* Dive timing: fast while the target is still far, then a long, smooth settling into the arrival.
+ * The dive is one cubic bezier (soft 12-frame ease-in, peak speed in the first fifth, 3 % of the zoom in the last quarter);
+ * between dives the camera keeps drifting a little (0.05 of a world) so it never stops dead. */
+const diveCurve = Easing.bezier(0.22, 0, 0.06, 1);
+export const uAt = (f: number) => {
+	for (let i = 0; i < NW; i++) {
+		if (f < TL.S[i]) return i + 0.05 * ease.inOut(clamp01((f - TL.A[i]) / (TL.S[i] - TL.A[i])));
+		if (f < TL.A[i + 1]) return i + 0.05 + 0.95 * diveCurve((f - TL.S[i]) / (TL.A[i + 1] - TL.S[i]));
+	}
+	return NW + 0.05 * ease.inOut(clamp01((f - TL.A[NW]) / (TL.durationInFrames - TL.A[NW])));
+};
 
 export type Cam = {i: number; t: number; s: number; q: {x: number; y: number}; lnK: number; z: number; u: number};
 

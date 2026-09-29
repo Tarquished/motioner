@@ -118,27 +118,12 @@ export const worldAt = (cam: Cam, f: number, px: number, py: number) => {
 	}
 };
 
-/** the camera lands with a small shake on every arrival (in step with the impact in the score) */
-const shake = (f: number) => {
-	let dx = 0;
-	let dy = 0;
-	for (const a of TL.A.slice(1)) {
-		const t = f - a;
-		if (t < 0 || t > 26) continue;
-		const e = Math.exp(-t / 5) * Math.min(1, t + 0.5);
-		dx += 9 * e * Math.cos(t * 2.1);
-		dy += 7 * e * Math.sin(t * 2.7 + 1);
-	}
-	return {dx, dy};
-};
-
 export const drawScene = (g: CanvasRenderingContext2D, f: number) => {
 	const cam = cameraAt(f);
-	const sh = shake(f);
 	g.setTransform(1, 0, 0, 1, 0, 0);
 	g.globalAlpha = 1;
 	g.globalCompositeOperation = 'source-over';
-	drawTree(g, cam.i, f, cam.s, cam.q.x * (1 - cam.s) + sh.dx, cam.q.y * (1 - cam.s) + sh.dy, {x0: 0, y0: 0, x1: W, y1: H});
+	drawTree(g, cam.i, f, cam.s, cam.q.x * (1 - cam.s), cam.q.y * (1 - cam.s), {x0: 0, y0: 0, x1: W, y1: H});
 };
 
 /* ── film chrome, grain, vignette ─────────────────────────────────────────── */
@@ -256,7 +241,7 @@ const mk = () => {
 
 export const renderFrame = (main: CanvasRenderingContext2D, f: number) => {
 	const rate = zoomRate(f);
-	const n = Math.max(1, Math.min(9, 1 + Math.round(rate * 140)));
+	const n = Math.max(1, Math.min(18, 1 + Math.round(rate * 260)));
 	if (n === 1) {
 		drawScene(main, f);
 	} else {

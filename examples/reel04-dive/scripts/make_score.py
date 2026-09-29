@@ -33,11 +33,11 @@ add(type="chime", frame=TL["word"]["dot"] + 6, gain_db=-6, label="window ring")
 for i, d in enumerate(EV["dives"]):
     add(type="pop", frame=S[i] - 16, degree=0, octave=6, gain_db=1, label=f"ring {i} a")
     add(type="pop", frame=S[i] - 7, degree=4, octave=6, gain_db=1, label=f"ring {i} b")
-    add(type="zoom", start=d["start"], speed=d["rate"], bar=A[i + 1] // 120, gain_db=-3, label=f"dive {i}")
+    add(type="zoom", start=d["start"], speed=d["rate"], bar=A[i + 1] // 120, gain_db=-5, label=f"dive {i}")
     fa = A[i + 1]
-    add(type="impact", frame=fa, gain_db=-1, label=f"arrival {i + 1}")
-    add(type="sub", frame=fa, gain_db=-3, label=f"arrival {i + 1} sub")
-    add(type="stab", frame=fa + 1, octave=4, gain_db=-4, label=f"arrival {i + 1} chord")
+    add(type="impact", frame=fa, gain_db=-7, label=f"arrival {i + 1}")
+    add(type="sub", frame=fa, gain_db=-4, label=f"arrival {i + 1} sub")
+    add(type="stab", frame=fa + 1, octave=4, gain_db=-2, label=f"arrival {i + 1} chord")
     add(type="click", frame=fa + 8, gain_db=-2, pan=0.4, label="callout appears")
 
 # callout of the first world
