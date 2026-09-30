@@ -28,7 +28,17 @@ Remotion is the default tool. Nothing counts as finished until the **encoded fil
 
 ## Watch the films
 
-Every frame and every sound of these five films was written in code by an agent using this skill. Press play, no download needed (previews are 720p; each one links to the full 1080p 60 fps file).
+Every frame and every sound of these six films was written in code by an agent using this skill. Press play, no download needed (previews are 720p; each one links to the full 1080p 60 fps file).
+
+### 06 · Resonance &nbsp;<sub>30 s · 2560x1440 · 60 fps · no 3D</sub>
+
+Sound made visible. One shader draws the whole film: everything is a distance field, so a ring can travel along a dot, then along a word. A dot pings and the room turns to paper; time runs backwards and the rings **rewind onto the word SOUND**; it melts letter by letter into MOTION; the camera falls into the counter of the O and comes out inside the film's **own waveform**, which zooms out to the whole 30 seconds, bends into a ring and opens like a lens onto a **plate of sand** where every note of the arpeggio is a different Chladni pattern. A montage on half beats, everything on screen at once, an iris that closes it all into the dot, and the rings rewind once more to draw *motioner.* A code-written score with booms, choir and time-reversed sound.
+
+https://github.com/user-attachments/assets/9bd7f2a0-9955-4855-99f0-35ed1702280a
+
+[Full quality 1440p60 MP4](videos/06-motioner-reel06-resonance.mp4)
+
+Source: [`examples/reel06-resonance`](examples/reel06-resonance) · technique: [`references/field-technique.md`](references/field-technique.md)
 
 ### 05 · Chain reaction &nbsp;<sub>30 s · 3D · 60 fps</sub>
 
@@ -115,7 +125,7 @@ motioner/
 ├── templates/remotion/      the Remotion kit: curves, morph carriers, transitions, creative parts, build pipeline
 ├── scripts/                 review and sound tools that measure the encoded video and audio
 ├── references/              benchmark films, creative playbook, motion, morphs, sound, typography, review loop
-├── examples/                five complete films with their score scripts and review notes
+├── examples/                six complete films with their score scripts and review notes
 ├── videos/                  web previews of the films
 ├── evals/                   test prompts and a review scorecard
 └── docs/                    README artwork
@@ -130,6 +140,7 @@ motioner/
 | `transition_review.py` | Per-transition contact sheets with speed, contrast and sharpness curves and flags: POP, STUTTER, HITCH, FLASH, BLANK, COLORJUMP, GHOST, MUDDY, SOFT, plus local ones on a fine grid: HANDOFF-JUMP, TELEPORT, JERK, with pixel positions. Lists the fastest frame of every move (where whoosh peaks go) |
 | `contact_sheet.py` | Whole-film thumbnails at phone size for a muted review, or `--crop` close-ups of one region frame by frame |
 | `synth_score.py` | Writes the soundtrack in code from the film's timeline: a tempo-locked music bed (intro, groove, lift, montage, outro, silence before each drop) and one synthesized sound per event (plucks in key, risers, impacts, whooshes shaped by the move's speed, ticks, typing, clicks, glitches, chimes) |
+| `synth_epic.py` | Big-hit instruments and a bed builder for finales: layered booms with a pitch-dropping sub, tutti (boom + choir + brass + bells + crash), time-reversed rewinds, sonar pings, sand grains, gliding chords, bell runs, taiko and snare rolls; a music bed from kits (drone, space, heart, groove, build, montage, together, finale, outro) with silences before the drops |
 | `synth_machine.py` | Instruments for physical events: wood tock, rolling, clack, slam, launch, button, gear tooth, music-box tongue, letter thud and more, all soft and in key |
 | `sfx_scan.py` | Screens found SFX candidates: shape, lead-in, attack, peak, length vs the move, noise; verdict per role; spectrogram cards |
 | `beat_grid.py` | Tempo, beats, bars, phrases, accents, breaks and the final hit of a song in video frames |
@@ -147,12 +158,13 @@ python scripts/sync_check.py out/film.mp4 public/audio/mix.cues.json --root .
 python scripts/verify_video.py out/film.mp4 --width 1080 --height 1920 --fps 60 --frames 873 --codec h264 --pixel-format yuv420p --require-audio
 ```
 
-**Reference docs** (`references/`): a frame-by-frame breakdown of 12 benchmark films, the creative playbook, the nested-world dive technique, the 3D cause-chain technique, morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, the review loop, Remotion setup, typography and direction defaults.
+**Reference docs** (`references/`): a frame-by-frame breakdown of 12 benchmark films, the creative playbook, the nested-world dive technique, the 3D cause-chain technique, the distance-field technique, morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, the review loop, Remotion setup, typography and direction defaults.
 
 **Worked examples** (`examples/`), each with review sheets and the glitches the tools caught:
 
 | Example | What it shows |
 |---|---|
+| [`reel06-resonance`](examples/reel06-resonance) | 30 s, 2560x1440, no 3D: one distance-field shader draws everything; rings rewind onto a word, words melt letter by letter, a push-through opens the film's own waveform, which rolls into a ring that opens onto a Chladni plate; montage, everything together, a code-written epic score |
 | [`reel05-chain`](examples/reel05-chain) | 30 s cause chain in 3D: simulated pendulum, dominoes, see-saw, cradle, gears, music box and rising letters; a wave of light made by mixing two lighting passes; soft shadows and depth of field by accumulation |
 | [`reel04-dive`](examples/reel04-dive) | 27 s continuous zoom through six nested worlds: canvas engine, exact window geometry, a score that follows the camera |
 | [`reel03`](examples/reel03) | 18 s reel built from the letters of one word |

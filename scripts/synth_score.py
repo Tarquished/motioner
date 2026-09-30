@@ -152,6 +152,14 @@ def norm(x, peak=0.89):
     return x * (peak / m)
 
 
+def mono_bass(x, fc=150.0):
+    """collapse everything below fc to mono (decorrelated reverb in the sub makes a mix thin and out of phase on small speakers)"""
+    if x.ndim == 1:
+        return x
+    lo = filt((x[:, 0] + x[:, 1]) / 2, "lp", fc)
+    return np.stack([lo + x[:, 0] - filt(x[:, 0], "lp", fc), lo + x[:, 1] - filt(x[:, 1], "lp", fc)], 1)
+
+
 def write_wav(path, y):
     path.parent.mkdir(parents=True, exist_ok=True)
     y = np.stack([y, y], 1) if y.ndim == 1 else y
@@ -625,6 +633,9 @@ def sfx_for(item, rng, harmony, ir, fps):
     from synth_machine import MACHINE  # instruments for physical events (cause-chain films)
     if typ in MACHINE:
         return MACHINE[typ](item, rng, harmony, ir, fps)
+    from synth_epic import EPIC  # big cinematic hits, choir, rewind, bells (finale films)
+    if typ in EPIC:
+        return EPIC[typ](item, rng, harmony, ir, fps)
     if typ == "whoosh":
         return sfx_whoosh(rng, item.get("frames", 30), fps, item.get("speed"), item.get("bright", 1.0))
     if typ == "zoom":
@@ -684,11 +695,15 @@ def main():
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
 
-    music = build_music(score, harmony, rng, n_total, ir)
+    if score.get("music_engine") == "epic":
+        from synth_epic import build_music_epic
+        music = build_music_epic(score, harmony, rng, n_total, ir)
+    else:
+        music = build_music(score, harmony, rng, n_total, ir)
     # end: ring out and fade the last frames so nothing is chopped
     fo = int(score.get("fade_out_ms", 400) / 1000 * SR)
     music[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 1.5
-    write_wav(out / "music.wav", norm(music, 0.8))
+    write_wav(out / "music.wav", norm(mono_bass(music), 0.8))
 
     sounds, cues = {}, []
     for k, item in enumerate(score.get("sfx", [])):
@@ -697,13 +712,13 @@ def main():
         for j, fr in enumerate(hits):
             key = json.dumps({kk: vv for kk, vv in item.items() if kk not in ("frame", "start", "label", "gain_db", "pan")}, sort_keys=True)
             # repeated small sounds get 3 takes (a new take per hit or per entry) so they never machine-gun
-            variant = (j if frames else k) % 3 if item["type"] in ("type", "tick", "click", "pop", "gear", "clack", "cradle", "tap", "pin", "lever", "pawl", "paddle", "mbox") else 0
+            variant = (j if frames else k) % 3 if item["type"] in ("type", "tick", "click", "pop", "gear", "clack", "cradle", "tap", "pin", "lever", "pawl", "paddle", "mbox", "tick_land", "ping", "stab_hit", "drum") else 0
             name = f"{item['type']}_{hashlib.md5((key + str(variant)).encode()).hexdigest()[:6]}"
             if name not in sounds:
                 r = np.random.default_rng(seed * 1000 + k * 7 + variant)
                 x, align, at = sfx_for(item, r, harmony, ir, fps)
-                write_wav(out / "sfx" / f"{name}.wav", x)
-                sounds[name] = {"file": f"sfx/{name}.wav", "role": ROLE.get(item["type"]) or __import__("synth_machine").MACHINE_ROLE[item["type"]], "align": align}
+                write_wav(out / "sfx" / f"{name}.wav", mono_bass(x) if x.ndim == 2 else x)
+                sounds[name] = {"file": f"sfx/{name}.wav", "role": ROLE.get(item["type"]) or {**__import__("synth_machine").MACHINE_ROLE, **__import__("synth_epic").EPIC_ROLE}[item["type"]], "align": align}
             cue = {"frame": fr, "sound": name, "align": sounds[name]["align"], "label": item.get("label", item["type"])}
             if item["type"] in ("riser", "swell") and "gain_db" not in item:
                 cue["gain_db"] = -6
@@ -721,6 +736,9 @@ def main():
         "music": {"file": "music.wav", "under_mix_lu": score.get("under_mix_lu", 7), "edits": [[0, 0.0]],
                   "fade_in_ms": 5, "fade_out_ms": 10, "end_frame": score["frames"]},
         "duck": {"attack_ms": 20, "hold_ms": 120, "release_ms": 350},
+        **({"sfx_bus": score["sfx_bus"]} if "sfx_bus" in score else {}),
+        **({"gaps": score["gaps"], "gap_ms": score.get("gap_ms", 90)} if score.get("music_engine") == "epic" and "gaps" in score else {}),
+        **({"master_fade_ms": score["master_fade_ms"]} if "master_fade_ms" in score else {}),
         "sounds": sounds, "cues": sorted(cues, key=lambda c: c["frame"]),
     }
     (out / "cues.json").write_text(json.dumps(sheet, indent=1), encoding="utf-8")

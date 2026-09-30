@@ -426,7 +426,8 @@ def main():
         music *= duck_env(placed, n, fps, sheet.get("duck", {}))[:, None]
     pk = 20 * np.log10(np.max(np.abs(sfx)) + 1e-12)
     # light bus compression: only the tallest transients; balance comes from role levels, not squashing
-    sfx_c, bus_gr = compress(sfx, pk - 9.0, ratio=2.5, attack=0.002) if np.any(sfx) else (sfx, 0.0)
+    bus = sheet.get("sfx_bus", {})  # {"below_peak_db": 9, "ratio": 2.5}; ratio 1 leaves the transients alone (big-hit films)
+    sfx_c, bus_gr = compress(sfx, pk - float(bus.get("below_peak_db", 9.0)), ratio=float(bus.get("ratio", 2.5)), attack=0.002) if np.any(sfx) and float(bus.get("ratio", 2.5)) > 1.0 else (sfx, 0.0)
     under = sheet.get("music", {}).get("under_mix_lu", 9.0) if sheet.get("music") else None
     if under is not None and np.any(music):
         # keep the bed a fixed distance under the finished mix (clients hear "music too loud" first)
@@ -435,6 +436,26 @@ def main():
             if abs(gap - under) < 0.2:
                 break
             music *= 10 ** ((gap - under) / 20 * 0.9)
+    # silence before the drops: everything (music, tails, reverb) goes quiet for gap_ms before each listed frame, so the hit is a hit
+    gaps = sheet.get("gaps", [])
+    if gaps:
+        w = np.ones(n)
+        gap = int(float(sheet.get("gap_ms", 90)) / 1000 * SR)
+        fade = int(0.006 * SR)
+        for gf in gaps:
+            i1 = int(round(gf / fps * SR))
+            i0 = max(0, i1 - gap)
+            w[i0:i1] = 0.0
+            w[max(0, i0 - fade):i0] = np.minimum(w[max(0, i0 - fade):i0], np.linspace(1, 0, i0 - max(0, i0 - fade)))
+        music *= w[:, None]
+        sfx_c *= w[:, None]
+    # the film ends in a fade, never on a tail that is cut
+    mf = float(sheet.get("master_fade_ms", 0)) / 1000
+    if mf > 0:
+        k = int(mf * SR)
+        f_ = np.linspace(1, 0, k) ** 2
+        music[-k:] *= f_[:, None]
+        sfx_c[-k:] *= f_[:, None]
     mix = music + sfx_c
     m = sheet.get("master", {})
     y, max_gr, frac, goal = master(mix, m.get("lufs", -14.0), m.get("true_peak_db", -1.5), m.get("max_limiting_db", 4.0))

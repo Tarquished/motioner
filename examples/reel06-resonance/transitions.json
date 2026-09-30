@@ -1,0 +1,80 @@
+[
+ {
+  "name": "hum to ping (shock ring)",
+  "start": 114,
+  "end": 150,
+  "kind": "flash"
+ },
+ {
+  "name": "pings rewind into SOUND",
+  "start": 226,
+  "end": 316,
+  "kind": "seamless"
+ },
+ {
+  "name": "SOUND flood to blue",
+  "start": 358,
+  "end": 396,
+  "kind": "flash"
+ },
+ {
+  "name": "SOUND melts into MOTION",
+  "start": 390,
+  "end": 430,
+  "kind": "morph"
+ },
+ {
+  "name": "push through the O into the scope",
+  "start": 448,
+  "end": 520,
+  "kind": "zoom"
+ },
+ {
+  "name": "scope zooms out to the whole film",
+  "start": 598,
+  "end": 664,
+  "kind": "seamless"
+ },
+ {
+  "name": "waveform bends into a ring",
+  "start": 658,
+  "end": 724,
+  "kind": "morph"
+ },
+ {
+  "name": "ring opens onto the plate",
+  "start": 716,
+  "end": 752,
+  "kind": "zoom"
+ },
+ {
+  "name": "plate accelerates into the montage",
+  "start": 1040,
+  "end": 1090,
+  "kind": "cut"
+ },
+ {
+  "name": "montage cuts",
+  "start": 1078,
+  "end": 1262,
+  "kind": "cut"
+ },
+ {
+  "name": "everything together",
+  "start": 1258,
+  "end": 1322,
+  "kind": "flash"
+ },
+ {
+  "name": "collapse into the dot",
+  "start": 1318,
+  "end": 1368,
+  "kind": "zoom"
+ },
+ {
+  "name": "rewind onto motioner.",
+  "start": 1436,
+  "end": 1516,
+  "kind": "seamless"
+ }
+]
