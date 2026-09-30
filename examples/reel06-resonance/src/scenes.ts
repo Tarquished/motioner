@@ -7,7 +7,7 @@ import TL from './timeline.json';
 
 export const FPS = 60;
 export const BEAT = 30;
-const {ping, sound, hum, motion, frame: FR, ring: RG, build: BD, recap: RCX, finale: FN, plate: PL} = TL;
+const {ping, sound, hum, motion, frame: FR, ring: RG, build: BD, recap: RCX, finale: FN, plate: PL, outro: OU} = TL;
 
 // ------------------------------------------------------------------ helpers
 const easeOutExpo = (p: number) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
@@ -348,10 +348,10 @@ const notePulse = (k: number, t: number) => {
 	return age < 0 ? 0 : Math.exp(-age / 9);
 };
 // the letter i with its beat pulse and, at the lock, its spring
-const recapGlyph = (i: number, t: number): Glyph => {
+const recapGlyph = (i: number, t: number, lock = RC.lock): Glyph => {
 	const g = {...WM_GL[i]};
-	const pu = notePulse(i, t);
-	const age = t - RC.lock - i * 4;
+	const pu = lock === RC.lock ? notePulse(i, t) : 0;
+	const age = t - lock - i * 4;
 	const env = age < 0 ? 0 : Math.exp(-age / 11);
 	g.s *= 1 + 0.07 * pu + 0.07 * env * Math.sin((Math.max(0, age) / 9) * Math.PI);
 	g.y += 34 * env * Math.sin((Math.min(Math.max(0, age), 40) / 9) * Math.PI) * 0.9;
@@ -359,7 +359,9 @@ const recapGlyph = (i: number, t: number): Glyph => {
 	return g;
 };
 
-const recapLayer = (fr: Frame, t: number, k: number, Zc: number) => {
+type Dive = {Zd: number; px: number; py: number};
+const recapLayer = (fr: Frame, t: number, k: number, Zc: number, dv: Dive = {Zd: 1, px: 0, py: 0}) => {
+	const Zt = Zc * dv.Zd;
 	const h = Math.round(t);
 	const V = k === 0 ? RC.from : RC.S[k - 1];
 	if (h < V) return;
@@ -368,52 +370,167 @@ const recapLayer = (fr: Frame, t: number, k: number, Zc: number) => {
 	const g = recapGlyph(k, t);
 	const info = CHARS[LETTERS[k]];
 	WORLDS[k](L, t);
-	const fullHW = W / 2 / Zc + 60;
-	const fullHH = H / 2 / Zc + 60;
+	const fullHW = W / 2 / Zt + 60;
+	const fullHH = H / 2 / Zt + 60;
 	const lhw = (info.w / 2) * g.s * 1.02 + 4;
 	const lhh = (info.h / 2) * g.s * 1.02 + 4;
 	const morph = smooth(0.2, 1, e);
 	L.window({cx: lerp(0, g.x, e), cy: lerp(0, g.y, e), hw: lerp(fullHW, lhw, e), hh: lerp(fullHH, lhh, e), corner: lerp(0, 22, e)}, morph, g, 1.3, WORLD_OL[k], 0.95 * smooth(0.3, 1, e));
-	const S: [number, number] = [lerp(W / 2, W / 2 + g.x * Zc, e), lerp(H / 2, H / 2 + g.y * Zc, e)];
-	L.place(S, lerp(1, WORLD_ZOOM[k], e), W, H);
+	const S: [number, number] = [W / 2 + (lerp(0, g.x, e) - dv.px) * Zt, H / 2 + (lerp(0, g.y, e) - dv.py) * Zt];
+	L.place(S, lerp(1, WORLD_ZOOM[k], e) * dv.Zd, W, H);
 };
 
 const recapFrame = (fr: Frame, t: number) => {
 	const Zc = recapCam(t);
+	const dvS = t >= OU.dive[0] ? diveState(t, Zc) : null;
+	const dv: Dive = dvS ? {Zd: dvS.Zd, px: dvS.px, py: dvS.py} : {Zd: 1, px: 0, py: 0};
 	const base = fr.layers[0].on();
-	base.bg(PAL.ink).ink(PAL.paper, PAL.coral, 1, 3).transform(Zc);
+	base.bg(PAL.ink).ink(PAL.paper, PAL.coral, 1, 3).transform(Zc * dv.Zd, dv.px, dv.py);
 	const glyphs = WM_GL.map((_, i) => recapGlyph(i, t));
-	base.slot(0, {type: 2, w: 1, group: 0, a: 0, fill: PAL.paper, fillAmt: smooth(RC.resolve[0], RC.resolve[1], t)});
+	base.slot(0, {type: 2, w: 1, group: 0, a: 0, fill: PAL.paper, fillAmt: 0});
 	base.word(0, glyphs);
 	// the full stop falls in when the last letter has locked and pings
 	const dp = clamp01((t - RC.drop[0]) / (RC.drop[1] - RC.drop[0]));
 	const dy = lerp(900, 0, 1 - Math.pow(1 - dp, 2)) * (t < RC.drop[1] ? 1 : 0);
 	const land = t >= RC.drop[1] ? Math.exp(-(t - RC.drop[1]) / 7) : 0;
-	const rd = WM.r * (1 - 0.18 * land + 0.1 * Math.sin(Math.PI * dp) * (dp < 1 ? 1 : 0) + 0.22 * Math.exp(-(t - FN.lastPing) / 8) * (t >= FN.lastPing ? 1 : 0));
+	const rd = WM.r * (1 - 0.18 * land + 0.1 * Math.sin(Math.PI * dp) * (dp < 1 ? 1 : 0));
 	if (t >= RC.drop[0]) base.slot(1, {type: 1, w: 1, group: 1, x: WM_PERIOD[0], y: WM_PERIOD[1] + dy, a: rd, fill: PAL.coral, fillAmt: 1});
 	base.glow(PAL.coral, t >= RC.drop[1] ? 0.35 : 0, 44, 1);
-	// contours echo around the name once it is whole; a ring of light leaves it on the lock and on the beats after
+	// contours echo around the name once it is whole; a ring of light leaves it on the lock
 	const whole = smooth(RC.drop[1], RC.drop[1] + 24, t);
-	base.fieldLines({spacing: SP, phase: beatPhase(t, RC.drop[1]) * 0.6, w: 2.6, a: 0.55 * whole, fall: 760, group: 0, emph: 6});
-	[RC.drop[1], RC.lock, 1470, 1500, 1530, 1560, FN.lastPing].forEach((t0, j) => {
+	base.fieldLines({spacing: SP, phase: beatPhase(t, RC.drop[1]) * 0.6, w: 2.6, a: 0.55 * whole * (1 - (dvS ? smooth(0, 0.35, dvS.p) : 0)), fall: 760, group: 0, emph: 6});
+	[RC.drop[1], RC.lock].forEach((t0, j) => {
 		const age = t - t0;
 		if (age < 0) return;
 		const p = clamp01(age / 100);
-		base.pulse(j, {g: 0, R: 900 * ease.out(p), w: lerp(2, 4.5, 1 - p), a: Math.pow(1 - p, 1.1) * (j === 1 || j === 6 ? 1 : 0.7), mix: clamp01(1 - age / 10)});
+		base.pulse(j, {g: 0, R: 900 * ease.out(p), w: lerp(2, 4.5, 1 - p), a: Math.pow(1 - p, 1.1) * (j === 1 ? 1 : 0.7), mix: clamp01(1 - age / 10)});
 	});
-	for (let k = 0; k < 8; k++) recapLayer(fr, t, k, Zc);
-	// the windows dust away, left to right, and the name is clean
-	if (t >= RC.resolve[0]) {
-		for (let k = 0; k < 8; k++) {
-			const L = fr.layers[8 - k];
-			const d = smooth(RC.resolve[0] + 6 * k, RC.resolve[0] + 6 * k + 34, t);
-			L.swirl(0, 600, d, 900, 0.5, 2, Math.floor(t));
-		}
-	}
-	if (Math.round(t) >= RC.lock && t - RC.lock < 60) {
+	for (let k = 0; k < 8; k++) recapLayer(fr, t, k, Zc, dv);
+	if (dvS) {
+		// inside the full stop: the room of the first frame, which grows to fill the screen as the camera falls in
+		const L = fr.layers[9].on(1);
+		humRoom(L, t, dvS.bgMix, smooth(0.15, 0.6, dvS.z1));
+		L.place([dvS.cx, dvS.cy], dvS.z1, W, H);
+		fr.ring(dvS.cx, dvS.cy, dvS.R, 1.5, 0, 0, 0);
+	} else if (Math.round(t) >= RC.lock && t - RC.lock < 18) {
 		const age = Math.max(0, t - RC.lock);
-		const q = 1 - age / 60;
-		fr.ring(W / 2, H / 2, (2600 * (1 - Math.pow(2, -5 * (age / 45)))) / (1 - Math.pow(2, -5)), 150, 30 * q, 8 * q, 0.35 * q, PAL.paper);
+		const q = 1 - age / 18;
+		fr.ring(W / 2, H / 2, (2600 * (1 - Math.pow(2, -5 * (age / 14)))) / (1 - Math.pow(2, -5)), 150, 30 * q, 8 * q, 0.35 * q, PAL.paper);
+	}
+};
+
+// ------------------------------------------------------------------ the outro: the name falls into its own full stop and the film begins again
+// (the dive is a push-through into the period; inside it is the room of the first frame; the first ping is struck again, and this time the rings write the name)
+const diveState = (t: number, Zc: number) => {
+	const p = clamp01((t - OU.dive[0]) / (OU.dive[1] - OU.dive[0]));
+	const Z = Math.exp(Math.log(OU.zEnd) * ease.whip(p));
+	const k = (1 - 1 / Z) / (1 - 1 / OU.zEnd);
+	const px = WM_PERIOD[0] * k;
+	const py = WM_PERIOD[1] * k;
+	const Zt = Zc * Z;
+	return {p, Z, Zd: Z, px, py, cx: W / 2 + (WM_PERIOD[0] - px) * Zt, cy: H / 2 + (WM_PERIOD[1] - py) * Zt, R: WM.r * Zt, z1: Z / OU.zEnd, bgMix: smooth(0.12, 0.62, p)};
+};
+
+/** the room of the first frame: a coral dot humming in the dark (inside the full stop it starts out coral and darkens as we fall in) */
+const humRoom = (L: Layer, t: number, bgMix = 1, lineFade = 1) => {
+	const bg: RGB = [lerp(PAL.coral[0], PAL.ink[0], bgMix), lerp(PAL.coral[1], PAL.ink[1], bgMix), lerp(PAL.coral[2], PAL.ink[2], bgMix)];
+	const r = 18 + 2 * Math.sin((2 * Math.PI * t) / 60);
+	const rise = smooth(OU.hum[0], OU.hit, t);
+	L.bg(bg).ink(PAL.paper, PAL.coral, 0.5, 3).transform(1);
+	L.slot(0, {type: 1, w: 1, group: 0, x: 0, y: 0, a: r});
+	L.slot(1, {type: 1, w: 1, group: 1, x: 0, y: 0, a: r, fill: PAL.coral, fillAmt: 1});
+	L.glow(PAL.coral, (0.55 + 0.25 * rise) * bgMix, 52 + 50 * rise, 1);
+	L.fieldLines({spacing: 60, phase: t * 0.32, w: 2.4, a: 0.22 * lineFade * bgMix, fall: 240, group: 0});
+	OU.humRings.forEach((t0, j) => {
+		const age = t - t0;
+		if (age < 0) return;
+		const p = clamp01(age / 100);
+		L.pulse(j, {g: 0, R: 520 * ease.out(p), w: 2.5, a: 0.4 * (1 - p), mix: 0});
+	});
+};
+
+// the ping, struck again (same choreography as the film's first hit, on the outro's own frames)
+const ouRewind = (f: number) => {
+	const a = OU.rewind[0];
+	const b = OU.rewind[1];
+	const h0 = OU.hit - 8;
+	if (f <= a) return f;
+	if (f >= b) return h0 - (f - b) * 3;
+	return hermite((f - a) / (b - a), a, b - a, h0, (b - a) * -3);
+};
+const ouPhase = (f: number) => {
+	if (f < OU.rewind[0]) return beatPhase(f, OU.hit);
+	if (f < OU.lock) {
+		const a = OU.rewind[0];
+		const P0 = beatPhase(a, OU.hit);
+		const v0 = P0 - beatPhase(a - 1, OU.hit);
+		const Pe = SP * (Math.floor(P0 / SP) - 5);
+		return hermite((f - a) / (OU.lock - a), P0, v0 * (OU.lock - a), Pe, -6 * (OU.lock - a));
+	}
+	return beatPhase(f, OU.lock);
+};
+const ouSeedR = (f: number) => {
+	let r = SEED.rSettled;
+	const a = clamp01((f - OU.hit) / 2);
+	r += 44 * a * Math.exp(-(f - OU.hit) / 9);
+	for (const t of OU.pings.slice(1)) if (f >= t) r += 12 * clamp01((f - t) / 2) * Math.exp(-(f - t) / 8);
+	return r;
+};
+const ouZoom = (t: number) => {
+	const lock = t >= OU.lock ? 0.045 * Math.exp(-(t - OU.lock) / 7) : 0;
+	return 1 + 0.03 * ease.inOutSoft(clamp01((t - OU.hit) / (OU.lock - OU.hit))) + lock - (t >= OU.lock ? 0.03 * ease.out(clamp01((t - OU.lock) / 40)) : 0);
+};
+/** paper room: the dot, the rings of every ping, their rewind onto the wordmark, the fill, the seed as the full stop */
+const finalWorld = (L: Layer, t: number) => {
+	const zoom = ouZoom(t);
+	L.bg(PAL.paper).ink(PAL.ink, PAL.coral, 1, 3).transform(zoom);
+	const r = ouSeedR(t);
+	const a0 = OU.rewind[0] + 18;
+	const se = ease.inOut(clamp01((t - a0) / (OU.lock - a0)));
+	const tp = ease.snap(clamp01((t - a0) / (OU.lock - a0)));
+	L.slot(0, {type: 1, w: 1 - se, group: 0, x: 0, y: 0, a: r});
+	const fillA = ease.out(clamp01((t - OU.fill[0]) / (OU.fill[1] - OU.fill[0])));
+	L.slot(1, {type: 2, w: se, group: 0, a: 0, fill: PAL.ink, fillAmt: fillA});
+	const spring = WM_GL.map((_, i) => recapGlyph(i, t, OU.lock));
+	L.word(0, spring);
+	const sx = lerp(0, WM_PERIOD[0], tp);
+	const sy = lerp(0, WM_PERIOD[1], tp) + 60 * Math.sin(Math.PI * tp);
+	const lastPing = t >= FN.lastPing ? 0.22 * Math.exp(-(t - FN.lastPing) / 8) : 0;
+	const rr = (t < a0 ? r : lerp(r, WM.r, tp) * (1 + 0.16 * Math.exp(-(t - OU.lock) / 6) * clamp01((t - OU.lock + 2) / 2))) * (1 + lastPing);
+	L.slot(2, {type: 1, w: 1, group: 1, x: sx, y: sy, a: rr, fill: PAL.coral, fillAmt: 1});
+	L.fieldLines({spacing: SP, phase: ouPhase(t), w: 2.6, a: 0.8, fall: 720, group: 0, emph: 6});
+	const te = ouRewind(t);
+	OU.pings.forEach((t0, j) => {
+		const age = te - t0;
+		if (age < 0) return;
+		const p = clamp01(age / 110);
+		const life = 1 - p;
+		const fadeIn = clamp01((t - t0) / 2);
+		L.pulse(j, {g: 0, R: 1500 * ease.out(p), w: lerp(2.2, 5.5, life * life), a: fadeIn * Math.pow(life, 0.9), mix: clamp01(1 - age / 14)});
+	});
+	[...OU.echo, FN.lastPing].forEach((t0, j) => {
+		const age = t - t0;
+		if (age < 0) return;
+		const p = clamp01(age / 100);
+		L.pulse(4 + j, {g: 0, R: 900 * ease.out(p), w: lerp(2, 4.5, 1 - p), a: Math.pow(1 - p, 1.1) * (j === 0 ? 1 : 0.7), mix: clamp01(1 - age / 10)});
+	});
+};
+
+/** from the ping on: the hum room floods to paper (as at the film's first hit) and the paper room writes the name */
+const outroFrame = (fr: Frame, t: number) => {
+	const age = Math.max(0, t - OU.hit);
+	const R = 1700 * easeOutExpo(age / 22);
+	if (R < 1600) {
+		humRoom(fr.layers[0].on(), t);
+		finalWorld(fr.layers[1].on(1), t);
+		const rim = clamp01(1 - age / 26);
+		fr.flash(PAL.paper, 0.4 * Math.exp(-age / 2.5));
+		fr.ring(W / 2, H / 2, R, 110, 34 * rim, 9 * rim, 0.7 * rim, PAL.coral);
+	} else finalWorld(fr.layers[0].on(), t);
+	if (Math.round(t) >= OU.lock && t - OU.lock < 60) {
+		const a = Math.max(0, t - OU.lock);
+		const q = 1 - a / 60;
+		fr.ring(W / 2, H / 2, (2600 * (1 - Math.pow(2, -5 * (a / 45)))) / (1 - Math.pow(2, -5)), 150, 30 * q, 8 * q, 0.35 * q, PAL.coral);
 	}
 };
 
@@ -441,6 +558,7 @@ export const hudDark = (t: number, px: number, py: number): boolean => {
 	}
 	if (t < PL.flood1[0]) return false;
 	if (t < PL.flood1[1]) return floodR(t, PL.flood1[0], PL.flood1[1]) > dist(W / 2, H / 2); // coral (light) becomes blue (dark) inside the ring
+	if (t >= OU.hit) return t < OU.hit + 26 ? !(1700 * easeOutExpo((t - OU.hit) / 22) > dist(W / 2, H / 2)) : false; // the paper room of the wordmark
 	return true; // blue, ink, and the name on ink (the chrome is hidden while the recap runs)
 };
 
@@ -507,6 +625,10 @@ export const frameAt = (t: number): Frame => {
 			fr.flash(PAL.paper, 0.4 * Math.exp(-Math.max(0, t - ping.hit) / 2.5));
 			fr.ring(W / 2, H / 2, R, 110, 34 * rim, 9 * rim, 0.7 * rim, PAL.coral);
 		} else wordWorld(fr.layers[0].on(), t, z, false);
+	} else if (h >= OU.hit) {
+		outroFrame(fr, t);
+	} else if (h >= OU.hum[0]) {
+		humRoom(fr.layers[0].on(), t);
 	} else if (h >= RC.from) {
 		recapFrame(fr, t);
 	} else if (t >= RG.portal[1] && h < RC.from) {

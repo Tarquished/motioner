@@ -46,7 +46,8 @@ export const Film: React.FC = () => {
 	// chrome: fades in, hides during the push-through, follows the colour under it
 	const chromeA = sm(6, 26, f) * (1 - sm(452, 466, f)) + sm(510, 526, f) * sm(452, 466, f);
 	const recapHide = sm(1072, 1084, f) * (1 - sm(TL.recap.living[0] + 4, TL.recap.living[0] + 30, f));
-	const opacity = (f < 452 ? sm(6, 26, f) : f < 510 ? 1 - sm(452, 466, f) : sm(510, 526, f)) * (1 - recapHide);
+	const outroHide = sm(TL.outro.dive[0] - 12, TL.outro.dive[0], f) * (1 - sm(TL.outro.hit + 6, TL.outro.hit + 34, f));
+	const opacity = (f < 452 ? sm(6, 26, f) : f < 510 ? 1 - sm(452, 466, f) : sm(510, 526, f)) * (1 - recapHide) * (1 - outroHide);
 	void chromeA;
 	const col = (x: number, y: number) => (hudDark(f, x, y) ? PAPER : INK);
 	const txt = (x: number, y: number, extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -104,7 +105,7 @@ export const Film: React.FC = () => {
 				</div>
 			)}
 			{f >= TL.finale.tagline[0] - 4 && (
-				<div style={{position: 'absolute', left: 0, right: 0, top: H / 2 + 230, textAlign: 'center', fontFamily: SERIF, fontStyle: 'italic', fontSize: 108, color: PAPER, display: 'flex', justifyContent: 'center', gap: 30, opacity: fadeOut}}>
+				<div style={{position: 'absolute', left: 0, right: 0, top: H / 2 + 230, textAlign: 'center', fontFamily: SERIF, fontStyle: 'italic', fontSize: 108, color: INK, display: 'flex', justifyContent: 'center', gap: 30, opacity: fadeOut}}>
 					{TAG.map((w, k) => {
 						const t = clamp01(tagT - k * 0.46);
 						const e = ease.out(t);

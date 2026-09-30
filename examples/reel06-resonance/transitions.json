@@ -66,15 +66,21 @@
   "kind": "morph"
  },
  {
-  "name": "the name lives, then locks",
-  "start": 1321,
-  "end": 1445,
-  "kind": "seamless"
+  "name": "the name falls into its full stop (dive)",
+  "start": 1452,
+  "end": 1524,
+  "kind": "zoom"
  },
  {
-  "name": "lock to wordmark (sand + fill)",
-  "start": 1436,
-  "end": 1700,
-  "kind": "morph"
+  "name": "the ping is struck again (flood to paper)",
+  "start": 1556,
+  "end": 1600,
+  "kind": "flash"
+ },
+ {
+  "name": "rings rewind onto the wordmark",
+  "start": 1650,
+  "end": 1740,
+  "kind": "seamless"
  }
 ]
