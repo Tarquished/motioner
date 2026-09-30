@@ -28,13 +28,15 @@ Remotion is the default tool. Nothing counts as finished until the **encoded fil
 
 ## Watch the films
 
-Every frame and every sound of these five films was written in code by an agent using this skill. Press play, no download needed.
+Every frame and every sound of these five films was written in code by an agent using this skill. Press play, no download needed (previews are 720p; each one links to the full 1080p 60 fps file).
 
 ### 05 · Chain reaction &nbsp;<sub>30 s · 3D · 60 fps</sub>
 
 A machine that plays itself. A pendulum taps a bead, the bead rolls into a wave of dominoes, the last one throws a ball into the dark, the ball hits a button and a wave of light runs across the room; it wakes a Newton's cradle, four gears, a brass music box, and finally eight letters spring up to spell *motioner*. **Every move starts where the last one ends.** Real physics, soft shadows, depth of field and motion blur by accumulation, and 132 sounds each placed on the frame of the thing that makes it.
 
-<video src="https://github.com/Tarquished/motioner/raw/main/videos/05-motioner-reel05-chain.mp4" poster="videos/05-motioner-reel05-chain.jpg" controls muted playsinline width="100%"></video>
+https://github.com/user-attachments/assets/41a8edc9-38bf-42b3-9c45-54dc3201f7a6
+
+[Full quality 1080p60 MP4](videos/05-motioner-reel05-chain.mp4)
 
 Source: [`examples/reel05-chain`](examples/reel05-chain) · technique: [`references/chain-technique.md`](references/chain-technique.md)
 
@@ -42,7 +44,9 @@ Source: [`examples/reel05-chain`](examples/reel05-chain) · technique: [`referen
 
 One continuous zoom through six nested worlds, from the dot of *motioner.* back to the word. Magnification x48,600,000, and the score follows the camera.
 
-<video src="https://github.com/Tarquished/motioner/raw/main/videos/04-motioner-reel04-dive.mp4" poster="videos/04-motioner-reel04-dive.jpg" controls muted playsinline width="100%"></video>
+https://github.com/user-attachments/assets/0b089153-8af5-4e75-9948-0332e669317c
+
+[Full quality 1080p60 MP4](videos/04-motioner-reel04-dive.mp4)
 
 Source: [`examples/reel04-dive`](examples/reel04-dive) · technique: [`references/dive-technique.md`](references/dive-technique.md)
 
@@ -50,7 +54,9 @@ Source: [`examples/reel04-dive`](examples/reel04-dive) · technique: [`reference
 
 A film built from the letters of one word: the *t* becomes a timeline, the line a plucked string, the O every letter of MORPH.
 
-<video src="https://github.com/Tarquished/motioner/raw/main/videos/03-motioner-reel03.mp4" poster="videos/03-motioner-reel03.jpg" controls muted playsinline width="100%"></video>
+https://github.com/user-attachments/assets/dcc3ada4-f5f6-4420-a555-5c43e6b0779c
+
+[Full quality 1080p60 MP4](videos/03-motioner-reel03.mp4)
 
 Source: [`examples/reel03`](examples/reel03)
 
@@ -58,7 +64,9 @@ Source: [`examples/reel03`](examples/reel03)
 
 One coral dot becomes every scene: easing rails, shape morphs, a beat, a montage.
 
-<video src="https://github.com/Tarquished/motioner/raw/main/videos/02-motioner-reel02.mp4" poster="videos/02-motioner-reel02.jpg" controls muted playsinline width="100%"></video>
+https://github.com/user-attachments/assets/29940ab1-4ca4-47de-8089-556505c2fc82
+
+[Full quality 1080p60 MP4](videos/02-motioner-reel02.mp4)
 
 Source: [`examples/reel02`](examples/reel02)
 
@@ -66,9 +74,11 @@ Source: [`examples/reel02`](examples/reel02)
 
 A product story where cards, frames and thumbnails morph into each other.
 
-<video src="https://github.com/Tarquished/motioner/raw/main/videos/01-motioner-film.mp4" poster="videos/01-motioner-film.jpg" controls muted playsinline width="100%"></video>
+https://github.com/user-attachments/assets/c92f177a-8a6e-424c-9542-0fb682400d28
 
-> The videos start muted because browsers block autoplay with sound. Press the speaker icon: the sound is half of the work.
+[Full quality 1080p60 MP4](videos/01-motioner-film.mp4)
+
+> Turn the sound on: it is half of the work. Every sound in these films was synthesized in code and placed on the frame of the thing that makes it.
 
 ## Install
 
