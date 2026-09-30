@@ -436,17 +436,20 @@ def main():
             if abs(gap - under) < 0.2:
                 break
             music *= 10 ** ((gap - under) / 20 * 0.9)
-    # silence before the drops: everything (music, tails, reverb) goes quiet for gap_ms before each listed frame, so the hit is a hit
+    # a hole before the drops: from the frame listed minus gap_ms, everything (music, tails, reverb) fades out in ~40 ms and stays silent
+    # until the frame. The fade happens AFTER the start of the hole, so nothing is chopped: a swell that ends at the start of the hole
+    # rings out into the fade.
     gaps = sheet.get("gaps", [])
     if gaps:
         w = np.ones(n)
-        gap = int(float(sheet.get("gap_ms", 90)) / 1000 * SR)
-        fade = int(0.006 * SR)
+        gap = int(float(sheet.get("gap_ms", 110)) / 1000 * SR)
+        fade = min(int(0.040 * SR), gap - int(0.02 * SR))
         for gf in gaps:
             i1 = int(round(gf / fps * SR))
             i0 = max(0, i1 - gap)
-            w[i0:i1] = 0.0
-            w[max(0, i0 - fade):i0] = np.minimum(w[max(0, i0 - fade):i0], np.linspace(1, 0, i0 - max(0, i0 - fade)))
+            ramp = 0.5 * (1 + np.cos(np.linspace(0, np.pi, fade)))
+            w[i0:i0 + fade] = np.minimum(w[i0:i0 + fade], ramp)
+            w[i0 + fade:i1] = 0.0
         music *= w[:, None]
         sfx_c *= w[:, None]
     # the film ends in a fade, never on a tail that is cut

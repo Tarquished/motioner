@@ -23,7 +23,7 @@ def add(type_, frame=None, **kw):
     sfx.append(d)
 
 
-GAP = 90 / 1000 * fps  # 5.4 frames of silence before a drop
+GAP = 110 / 1000 * fps  # a hole before every drop: everything fades in 40 ms, the rest is silence
 CHORDS = ["i", "vi", "iii", "vii", "i", "vi", "iii", "vii", "i", "vi", "iii", "vii", "i", "vi", "i"]
 ROOT_HZ = {"i": 329.63, "vi": 261.63, "iii": 392.0, "vii": 293.66}
 def ring_hz(bar):
@@ -142,74 +142,61 @@ for i, t in enumerate(steps):
     if i % 3 == 0:
         add("drum", t, kind="tom", gain_db=-8 + 5 * i / (len(steps) - 1), label="roll tom")
 
-# ---- 8 MONTAGE: a hit per cut
-cuts = TL["montage"]["cuts"]
-chord_notes = [55, 59, 62, 64, 67, 71, 74, 76]
-for i, c in enumerate(cuts):
-    if i == 0:
-        add("tutti", c, size=2.5, bar=bar_of(c), gain_db=-2, label="MONTAGE")
-        continue
-    quarter = i >= 8
-    add("drum", c, kind="tom" if quarter else ("snare" if i % 2 else "kick"), gain_db=-3 if not quarter else -2, label="cut")
-    add("stab_hit", c, notes=[chord_notes[(i + k) % 8] + 12 * (1 if k else 0) for k in range(3)], dur=0.5, gain_db=-4, label="cut stab")
-    add("glitch", c, frames=8, gain_db=-8, label="cut glitch")
+# ---- 8 RECAP: the film rewinds; every chapter shrinks into a letter of the name
+RC = TL["recap"]
+NAME_NOTES = [64, 67, 71, 74, 76, 79, 83, 88]  # E4 G4 B4 D5 E5 G5 B5 E6: the name plays its own tune
+add("converge", RC["from"] - GAP, frames=(RC["from"] - GAP) - 1004, gain_db=-10, label="registration")
+add("boom", RC["from"], size=2.8, ring=ring_hz(9), gain_db=-1, label="the film rewinds")
+add("ping", RC["from"], midi=76, decay=2.2, echoes=3, gain_db=-8, label="hum ping")
+add("shock", RC["from"], frames=24, notes=[40, 47, 52], bright=0.5, gain_db=-9, label="rewind rush")
+KINDS = ["kick", "snare", "kick", "tom", "snare", "kick", "snare", "tom"]
+for k, S in enumerate(RC["S"]):
+    F = S + RC["shrink"]
+    add("drum", S, kind=KINDS[k], gain_db=-6, label=f"chapter {k + 1} -> letter")
+    add("stab_hit", S, notes=[NAME_NOTES[k] - 12, NAME_NOTES[k] - 5, NAME_NOTES[k]], dur=0.45, gain_db=-9, label="stab")
+    add("sweep", F, frames=RC["shrink"], bar=bar_of(S), oct=1, gain_db=-14, label="shrink")
+    add("ping", F, midi=NAME_NOTES[k], decay=1.4, echoes=2, gain_db=-7, label=f"letter {'motioner'[k]}")
+d0, d1 = RC["drop"]
+add("revswell", d1 - 0.5, frames=d1 - d0 - 0.5, gain_db=-12, label="the full stop falls")
+add("ping", d1, midi=88, decay=2.4, echoes=3, gain_db=-6, label="the full stop lands")
+add("boom", d1, size=1.2, ring=ring_hz(11), gain_db=-11, label="the name is whole")
 
-# ---- 9 EVERYTHING TOGETHER
-tg = TL["montage"]["builds"]
-add("choir", tg[0], bar=bar_of(tg[0]), dur=3.2, attack=0.4, gain_db=-6, label="choir in")
-add("stab_hit", tg[1], bar=bar_of(tg[1]), dur=0.7, gain_db=-6, label="layer 2")
-add("drum", tg[1], kind="snare", gain_db=-8, label="layer 2 snare")
-add("bellrun", tg[2], notes=[64, 67, 71, 74, 76, 79, 83, 86], step=2 / 60, gain_db=-6, label="layer 3")
-end_t = TL["montage"]["together"][1]
-add("stab_hit", tg[4], bar=bar_of(tg[4]), dur=0.7, gain_db=-5, label="layer 5")
-add("drum", tg[4], kind="snare", gain_db=-8, label="layer 5 snare")
-add("stab_hit", tg[5], bar=bar_of(tg[5]), dur=0.7, gain_db=-4, label="layer 6")
-add("drum", tg[5], kind="tom", gain_db=-7, label="layer 6 tom")
-for i, t in enumerate([end_t - d for d in (12, 9, 7, 5, 3.5, 2.4, 1.5, 0.8)]):
-    add("drum", t, kind="snare", gain_db=-8 + 6 * i / 7, label="final roll")
-add("tutti", end_t, size=3.6, bar=bar_of(end_t), gain_db=-0.5, label="EVERYTHING")
-ir0, ir1 = TL["collapse"]["iris"]
-add("rewind", ir1 - GAP, frames=(ir1 - GAP) - ir0, size=3.0, gain_db=-5, label="inhale")
-
-# ---- 10 the seed alone, then the rewind onto the wordmark
-fn = TL["finale"]
-add("ping", ir1 + 4, midi=88, decay=1.0, echoes=1, gain_db=-16, label="the dot is back")
-add("ping", fn["dotPing"], midi=76, decay=2.0, echoes=2, gain_db=-9, label="dot ping")
-add("sand", ir1, frames=(fn["rewind"][1] - GAP) - ir1, d0=25, d1=900, gain_db=-21, label="sand gathers")
-add("ping", fn["dotPing"] + 30, midi=79, decay=2.0, echoes=2, gain_db=-7, label="dot ping")
-r0, lk = fn["rewind"]
-add("rewind", lk - GAP, frames=(lk - GAP) - r0, size=3.6, gain_db=-3, label="rewind")
-for f0, m in zip([x for x in TL["sand"]["steps"] if x >= 1452], (76, 79, 83, 88, 91)):
-    add("tick_land", f0, midi=m, gain_db=-11, label="sand steps")
-add("ping", TL["sand"]["steps"][2], midi=83, decay=1.6, echoes=2, gain_db=-9, label="plate note")
-add("ping", TL["sand"]["steps"][0], midi=71, decay=1.6, echoes=2, gain_db=-10, label="plate note")
-
-# ---- 11 the wordmark
+# ---- 9 the name lives, then sets
+lv0, lk = RC["living"][0], RC["lock"]
+add("choir", lv0, bar=bar_of(lv0), dur=3.4, attack=0.5, gain_db=-7, label="choir")
+for k, t in enumerate(RC["notes"]):
+    add("ping", t, midi=NAME_NOTES[k], decay=1.2, echoes=1, gain_db=-8, label=f"living {k}")
+add("revswell", lk - GAP, frames=(lk - GAP) - 1380, gain_db=-8, label="riser")
+for i, t in enumerate([1408, 1416, 1422, 1426, 1429, 1431.5, 1433.5, lk - GAP - 0.4]):
+    add("drum", t, kind="snare", gain_db=-11 + 6 * i / 7, label="roll")
 add("tutti", lk, size=4.6, bar=bar_of(lk), gain_db=2, ring=ring_hz(12), label="motioner.")
 add("shock", lk, frames=40, notes=[40, 47, 52, 59], bright=0.6, gain_db=-5, label="the room")
-add("bellrun", lk, notes=[64, 67, 71, 74, 76, 79, 83, 88], step=4 / 60, gain_db=-8, label="letters")
+add("bellrun", lk, notes=NAME_NOTES, step=4 / 60, gain_db=-8, label="letters")
 add("ping", lk, midi=76, decay=3.0, echoes=3, gain_db=-8, label="ring")
-for t, m in zip((1530, 1560, 1590), (79, 83, 88)):
-    add("ping", t, midi=m, decay=1.3, echoes=2, gain_db=-9, label="echo")
-for k, (t, d) in enumerate(zip((1566, 1578, 1590), (4, 6, 9))):
+fn = TL["finale"]
+for t, m in zip((1470, 1500, 1530, 1560), (76, 79, 83, 88)):
+    add("ping", t, midi=m, decay=1.3, echoes=2, gain_db=-11, label="echo")
+for t, d in zip((1566, 1578, 1590), (4, 6, 9)):
     add("pop", t, degree=d, octave=5, gain_db=-10, label="tagline")
+rs0, rs1 = RC["resolve"]
+add("sand", rs0, frames=rs1 - rs0 + 20, d0=900, d1=60, gain_db=-21, label="the windows turn to dust")
+add("ping", rs1, midi=76, decay=2.0, echoes=2, gain_db=-11, label="clean")
 add("boom", fn["lastPing"], size=0.9, ring=ring_hz(14), gain_db=-15, label="last ping")
 add("ping", fn["lastPing"], midi=76, decay=3.6, echoes=3, gain_db=-7, label="last ping bell")
 
 score = {
     "fps": fps, "frames": frames, "bpm": 120, "beat0_frame": 0, "key": "E", "scale": "minor", "seed": 6,
-    "chords": CHORDS, "gap_ms": 90, "reverb_s": 2.2, "under_mix_lu": 16, "fade_out_ms": 1100, "master_fade_ms": 1300, "sfx_bus": {"ratio": 1.25, "below_peak_db": 6}, "master": {"lufs": -14, "true_peak_db": -1.2, "max_limiting_db": 6},
+    "chords": CHORDS, "gap_ms": 110, "reverb_s": 2.2, "under_mix_lu": 16, "fade_out_ms": 1100, "master_fade_ms": 1300, "sfx_bus": {"ratio": 1.25, "below_peak_db": 6}, "master": {"lufs": -14, "true_peak_db": -1.2, "max_limiting_db": 6},
     "music_engine": "epic",
-    "gaps": [120, lock, p0, TL["montage"]["from"], end_t, lk],
+    "gaps": [120, lock, p0, RC["from"], lk],
     "epic": [
         {"kit": "drone", "from": 6, "to": 120, "fade_in": 1.6, "fade_out": 0.04, "gain": 1.0},
         {"kit": "space", "from": 120, "to": 510, "gain": 0.95},
         {"kit": "heart", "from": 510, "to": 720, "gain": 0.9},
         {"kit": "groove", "from": 720, "to": 960, "gain": 0.9},
         {"kit": "build", "from": 960, "to": 1080, "gain": 0.9},
-        {"kit": "montage", "from": 1080, "to": 1260, "gain": 0.9},
-        {"kit": "together", "from": 1260, "to": end_t, "gain": 0.9},
-        {"kit": "drone", "from": ir1, "to": lk, "fade_in": 1.0, "fade_out": 0.04, "gain": 0.9},
+        {"kit": "montage", "from": 1080, "to": RC["living"][0], "gain": 0.8},
+        {"kit": "together", "from": RC["living"][0], "to": lk, "gain": 0.85},
         {"kit": "finale", "from": lk, "to": 1680, "gain": 0.95},
         {"kit": "outro", "from": 1680, "to": 1800, "gain": 0.9},
     ],

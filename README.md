@@ -32,13 +32,13 @@ Every frame and every sound of these six films was written in code by an agent u
 
 ### 06 · Resonance &nbsp;<sub>30 s · 2560x1440 · 60 fps · no 3D</sub>
 
-Sound made visible. One shader draws the whole film: everything is a distance field, so a ring can travel along a dot, then along a word. A dot pings and the room turns to paper; time runs backwards and the rings **rewind onto the word SOUND**; it melts letter by letter into MOTION; the camera falls into the counter of the O and comes out inside the film's **own waveform**, which zooms out to the whole 30 seconds, bends into a ring and opens like a lens onto a **plate of sand** where every note of the arpeggio is a different Chladni pattern. A montage on half beats, then **everything at once**: the plate, the waveform ring and the words MOTION, SOUND and WAVE orbiting on counter-rotating rings, each layer born out of dust on its beat. A whirl twists it all, the coral room turns to dust and is blown away, and out of the same dust the plate of sand returns on ink. Its lines are pulled onto the outline of *motioner.*: the sand writes the name, a lens of light runs out of the word, and the seed drops in as its full stop. A code-written score with booms, choir and time-reversed sound.
+Sound made visible. One shader draws the whole film: everything is a distance field, so a ring can travel along a dot, then along a word. A dot pings and the room turns to paper; time runs backwards and the rings **rewind onto the word SOUND**; it melts letter by letter into MOTION; the camera falls into the counter of the O and comes out inside the film's **own waveform**, which zooms out to the whole 30 seconds, bends into a ring and opens like a lens onto a **plate of sand** where every note of the arpeggio is a different Chladni pattern. The plate goes out of register into a **colour separation** (three additive plates that lock on the note), a window opens, and **the name is built out of the film itself**: each world you just saw shrinks on a beat into one letter of *motioner.*, the rectangle morphing into the glyph's outline. The letters live on their notes, a click locks the name, the sand is pulled onto its outline, and the seed drops in as the full stop. A code-written score with booms, choir and time-reversed sound.
 
-https://github.com/user-attachments/assets/0abc44b7-dfe9-4036-a716-1c09a24869d8
+https://github.com/user-attachments/assets/205e8f96-8cfb-48bd-8645-ace5dfa97f20
 
 [Full quality 1440p60 MP4](videos/06-motioner-reel06-resonance.mp4)
 
-Source: [`examples/reel06-resonance`](examples/reel06-resonance) · technique: [`references/field-technique.md`](references/field-technique.md)
+Source: [`examples/reel06-resonance`](examples/reel06-resonance) · technique: [`references/field-technique.md`](references/field-technique.md) · research: [`references/inspiration-recap-and-registration.md`](references/inspiration-recap-and-registration.md)
 
 ### 05 · Chain reaction &nbsp;<sub>30 s · 3D · 60 fps</sub>
 
@@ -158,13 +158,13 @@ python scripts/sync_check.py out/film.mp4 public/audio/mix.cues.json --root .
 python scripts/verify_video.py out/film.mp4 --width 1080 --height 1920 --fps 60 --frames 873 --codec h264 --pixel-format yuv420p --require-audio
 ```
 
-**Reference docs** (`references/`): a frame-by-frame breakdown of 12 benchmark films, the creative playbook, the nested-world dive technique, the 3D cause-chain technique, the distance-field technique, morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, the review loop, Remotion setup, typography and direction defaults.
+**Reference docs** (`references/`): a frame-by-frame breakdown of 12 benchmark films, the creative playbook, the nested-world dive technique, the 3D cause-chain technique, the distance-field technique (with a 40-entry inspiration log for the recap finale), morph recipes and a glitch catalogue (symptom, cause, fix), motion craft, sound design with working asset sources, the review loop, Remotion setup, typography and direction defaults.
 
 **Worked examples** (`examples/`), each with review sheets and the glitches the tools caught:
 
 | Example | What it shows |
 |---|---|
-| [`reel06-resonance`](examples/reel06-resonance) | 30 s, 2560x1440, no 3D: one distance-field shader draws everything; rings rewind onto a word, words melt letter by letter, a push-through opens the film's own waveform, which rolls into a ring that opens onto a Chladni plate; montage, everything together, a code-written epic score |
+| [`reel06-resonance`](examples/reel06-resonance) | 30 s, 2560x1440, no 3D: one distance-field shader draws everything; rings rewind onto a word, words melt letter by letter, a push-through opens the film's own waveform, which rolls into a ring that opens onto a Chladni plate; colour separation, then the name built from windows onto every world of the film, a code-written epic score |
 | [`reel05-chain`](examples/reel05-chain) | 30 s cause chain in 3D: simulated pendulum, dominoes, see-saw, cradle, gears, music box and rising letters; a wave of light made by mixing two lighting passes; soft shadows and depth of field by accumulation |
 | [`reel04-dive`](examples/reel04-dive) | 27 s continuous zoom through six nested worlds: canvas engine, exact window geometry, a score that follows the camera |
 | [`reel03`](examples/reel03) | 18 s reel built from the letters of one word |

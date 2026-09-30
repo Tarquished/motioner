@@ -23,7 +23,7 @@ uniform vec4 uAtl;   // CS, cols, atlas w, atlas h
 uniform vec4 uWaveInfo; // fine samples per row, rows, env samples, seconds
 out vec4 outColor;
 
-#define NL 6
+#define NL 10
 const int O_SLOT = 16;
 const int O_PULSE = 48;
 const int O_WORD = 72;
@@ -322,13 +322,29 @@ float ringMask(vec2 p){
 
 vec3 compose(vec2 p){
 	vec3 col = vec3(0.0);
-	int nLayers = int(T(6, 5).x + 0.5);
+	int nLayers = int(T(10, 5).x + 0.5);
 	for (int l = 0; l < nLayers; l++){
 		vec4 h = T(l, 0);
 		if (h.x < 0.5) continue;
 		float m = 1.0;
 		int mm = int(h.y + 0.5);
 		if (mm == 1) m = ringMask(p);
+		float winD = 1e5;
+		if (mm == 3){
+			// a window: a rectangle that shrinks and morphs into a glyph (both in layer 0's scene coordinates)
+			vec4 xf = T(0, 5);
+			float cr = cos(xf.w), sr = sin(xf.w);
+			vec2 q = (p - uRes * 0.5) / xf.x;
+			vec2 u = vec2(cr * q.x - sr * q.y, sr * q.x + cr * q.y) + xf.yz;
+			vec4 r7 = T(l, 107);
+			vec4 r8 = T(l, 108);
+			vec4 r9 = T(l, 109);
+			float cd3;
+			float Dr = roundBox(u - r7.xy, r7.zw, r8.x);
+			float Dg = glyphD(u - r9.xy, r8.w, r9.z, int(r8.z + 0.5), cd3);
+			winD = mix(Dr, Dg, r8.y) * xf.x;
+			m = clamp(0.5 - winD / max(r9.w, 0.5), 0.0, 1.0);
+		}
 		if (mm == 2){
 			// the counter of a glyph of layer 0's first word
 			vec4 xf = T(0, 5);
@@ -346,19 +362,24 @@ vec3 compose(vec2 p){
 		if (m <= 0.0) continue;
 		vec4 c = renderLayer(l, p);
 		float a = c.a * m;
+		if (mm == 3){
+			vec4 ol = T(l, 110);
+			float e3 = smoothstep(0.0, 1.4, -winD - 0.4) * (1.0 - smoothstep(2.2, 3.6, -winD));
+			c.rgb = mix(c.rgb, ol.rgb, e3 * ol.a);
+		}
 		if (l == 0 && T(0, 104).z <= 0.001) a = 1.0;
-		col = mix(col, c.rgb, a);
+		if (T(l, 1).w > 0.5) col += c.rgb * a; else col = mix(col, c.rgb, a);
 	}
 	return col;
 }
 
 void main(){
 	vec2 p = gl_FragCoord.xy + uJit;
-	vec4 g0 = T(6, 0); // ring: ox, oy, R, W
-	vec4 g1 = T(6, 1); // refract px, chroma px, rim, glitch amount
-	vec4 g2 = T(6, 2); // rim colour, seed
-	vec4 g3 = T(6, 3); // flash colour + amount
-	vec4 g4 = T(6, 4); // slice shift px, band height, rgb split px, unused
+	vec4 g0 = T(10, 0); // ring: ox, oy, R, W
+	vec4 g1 = T(10, 1); // refract px, chroma px, rim, glitch amount
+	vec4 g2 = T(10, 2); // rim colour, seed
+	vec4 g3 = T(10, 3); // flash colour + amount
+	vec4 g4 = T(10, 4); // slice shift px, band height, rgb split px, unused
 	gRingO = g0.xy; gRingR = g0.z; gRingW = max(g0.w, 1.0);
 	vec2 pp = p;
 	// glitch slices

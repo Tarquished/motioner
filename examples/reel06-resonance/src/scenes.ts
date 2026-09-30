@@ -7,7 +7,7 @@ import TL from './timeline.json';
 
 export const FPS = 60;
 export const BEAT = 30;
-const {ping, sound, hum, motion, frame: FR, ring: RG, build: BD, montage: MT, collapse: CL, finale: FN, plate: PL} = TL;
+const {ping, sound, hum, motion, frame: FR, ring: RG, build: BD, recap: RCX, finale: FN, plate: PL} = TL;
 
 // ------------------------------------------------------------------ helpers
 const easeOutExpo = (p: number) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
@@ -236,10 +236,10 @@ export const roseState = (f: number) => {
 	const rot = 0.012 * (f - RG.portal[0]) + 0.0009 * Math.pow(Math.max(0, f - BD.from), 1.5);
 	return {m1: prev.m, k1: prev.k, m2: cur.m, k2: cur.k, mix, pulse, rot, build};
 };
-const roseWorld = (L: Layer, f: number, zoom: number, pal: Pal = P_CORAL, mode?: [number, number], rotZ = 0) => {
+const roseWorld = (L: Layer, f: number, zoom: number, pal: Pal = P_CORAL, mode?: [number, number], rotZ = 0, pan: [number, number] = [0, 0]) => {
 	const R = roseState(f);
 	if (mode) Object.assign(R, {m1: mode[0], k1: mode[1], m2: mode[0], k2: mode[1], mix: 1});
-	L.bg(pal.bg).ink(pal.ink, pal.acc, 0.75, 2.6).transform(zoom, 0, 0, rotZ);
+	L.bg(pal.bg, pal.a ?? 1).ink(pal.ink, pal.acc, 0.75, 2.6).transform(zoom, pan[0], pan[1], rotZ);
 	const rad = 640 + 26 * R.pulse;
 	L.rosette({amt: 1, m1: R.m1, k1: R.k1, m2: R.m2, k2: R.k2, mix: R.mix, rot: R.rot, radius: rad, lineW: 3.6 + 2 * R.pulse, edge: 4, col: pal.ink, sand: 2.2 + 3 * R.pulse});
 	L.slot(0, {type: 1, w: 1, group: 0, x: 0, y: 0, a: rad, fillAmt: 0});
@@ -288,189 +288,136 @@ const wordOnly = (L: Layer, f: number, t0: number, pal: Pal, word: string, scale
 	L.pulse(0, {g: 0, R: 800 * ease.out(p), w: 6, a: 1 - p, mix: 1});
 };
 
-// the eight-then-eight cuts of the montage
-const CUT_KINDS: ((L: Layer, f: number, t0: number) => void)[] = [
-	(L, f, t0) => dotWorld(L, f, t0, P_CORAL, 130),
-	(L, f, t0) => wordOnly(L, f, t0, P_PAPER, 'SOUND', 1.25),
-	(L, f, t0) => wordOnly(L, f, t0, P_BLUE, 'MOTION', 1.2, 1, -0.05),
-	(L, f, t0) => scopeWorld(L, f, 1.05, [0, 0], P_INK, {eOut: 1, eB: 0}),
-	(L, f, t0) => roseWorld(L, f, 1.25, P_CORAL, [11, 0.05], 0.4),
-	(L, f, t0) => scopeWorld(L, f, 1.3, [0, 0], P_PAPER, {eOut: 1, eB: 1}, 0.3),
-	(L, f, t0) => roseWorld(L, f, 1.1, P_BLUE, [13, 0.058], -0.5),
-	(L, f, t0) => wordOnly(L, f, t0, P_INK, 'BEAT', 1.45),
-	(L, f, t0) => wordOnly(L, f, t0, P_PAPER, 'FRAME', 1.2, 1, 0.06),
-	(L, f, t0) => roseWorld(L, f, 1.6, P_CORAL, [15, 0.066], 0.9),
-	(L, f, t0) => dotWorld(L, f, t0, P_BLUE, 210, 1, 0.4),
-	(L, f, t0) => scopeWorld(L, f, 1.7, [0, 0], P_INK, {eOut: 1, eB: 1}, -0.7),
-	(L, f, t0) => wordOnly(L, f, t0, P_CORAL, 'RING', 1.7),
-	(L, f, t0) => roseWorld(L, f, 1.2, P_PAPER, [18, 0.08], 1.4),
-	(L, f, t0) => wordOnly(L, f, t0, P_BLUE, 'WAVE', 1.5, 1, 0.08),
-	(L, f, t0) => roseWorld(L, f, 1.9, P_INK, [20, 0.09], -1.6),
-];
-const cutIndex = (f: number) => {
-	let i = 0;
-	for (let k = 0; k < MT.cuts.length; k++) if (f >= MT.cuts[k] - 1e-6) i = k;
-	return i;
-};
-const montageFrame = (fr: Frame, t: number) => {
-	const i = cutIndex(Math.round(t)); // a cut is a hard cut: every sub-frame of a frame belongs to the same shot
-	const t0 = MT.cuts[i];
-	CUT_KINDS[i](fr.layers[0].on(), t, t0);
-	const age = t - t0;
-	fr.glitch(70 * Math.exp(-age / 3) * (age < 8 ? 1 : 0), 26, 7 * Math.exp(-age / 2.5) * (age < 8 ? 1 : 0));
-	fr.flash(PAL.paper, 0.25 * Math.exp(-age / 1.8));
-};
-
-// ------------------------------------------------------------------ everything together
-// Words orbit the plate on two counter-rotating rings, every layer materialises out of dust on its beat, then a whirl twists it all and
-// the dust is blown away; the next thing is made of the same dust (sand).
-const ringGlyphs = (word: string, scale: number, R: number, theta0: number): Glyph[] => {
+// ------------------------------------------------------------------ the recap: every chapter shrinks out of the frame into a letter of the name
+const RC = RCX;
+const RING_R = (word: string, scale: number, R: number, theta0: number) => {
 	const w = (ATL.words as any)[word];
 	return w.items.map((it: any) => {
-		const rad = R + it.y * scale; // the letter centre above the baseline, outward
-		const phi = theta0 + (it.x * scale) / R; // reading clockwise along the circle
-		return {x: rad * Math.sin(phi), y: rad * Math.cos(phi), s: scale, r: -phi, idx: it.idx};
+		const rad = R + it.y * scale;
+		const phi = theta0 + (it.x * scale) / R;
+		return {x: rad * Math.sin(phi), y: rad * Math.cos(phi), s: scale, r: -phi, idx: it.idx} as Glyph;
 	});
 };
-const spinAt = (t: number) => 0.0135 * (t - MT.together[0]) + (t > MT.builds[5] ? 0.0055 * (t - MT.builds[5]) : 0) + (t > CL.iris[0] ? 0.0022 * Math.pow(t - CL.iris[0], 2) : 0);
-const dustBorn = (t: number, at: number) => 1 - ease.out(clamp01((t - at) / 16));
-const dustWhirl = (t: number, a: number, b: number) => ease.in(clamp01((t - a) / (b - a)));
+const SWM = 1.0;
+const WM = wordBox('motioner', SWM);
+const WM_BASE = -80;
+const WM_GL: Glyph[] = wordGlyphs('motioner', SWM, WM.cx, WM_BASE);
+const WM_PERIOD: [number, number] = [WM.period[0], WM_BASE + WM.r];
+const CHARS = ATL.chars as any;
+const LETTERS = 'motioner';
+const beatT = (t: number) => RC.from + BEAT * Math.floor(Math.max(0, t - RC.from) / BEAT);
 
-const orbitLayer = (L: Layer, t: number, word: string, scale: number, R: number, dir: number, col: RGB, born: number, whirl: [number, number], swirl: number, zoom: number) => {
-	const sp = dir * spinAt(t);
-	L.bg(col, 0).ink(col, col, 0.9, 2.6).transform(zoom);
-	L.slot(0, {type: 2, w: 1, group: 0, a: 0, fill: col, fillAmt: 1});
-	L.slot(1, {type: 2, w: 1, group: 1, a: 1, fill: col, fillAmt: 1});
-	L.word(0, ringGlyphs(word, scale, R, sp));
-	L.word(1, ringGlyphs(word, scale, R, sp + Math.PI));
-	for (let k = 0; k < 2; k++) {
-		const t0 = born + 30 * k;
-		const age = t - t0;
-		if (age < 0) continue;
-		const p = clamp01(age / 40);
-		L.pulse(k * 2, {g: 0, R: 260 * ease.out(p), w: 3, a: 0.8 * (1 - p), mix: 0});
-		L.pulse(k * 2 + 1, {g: 1, R: 260 * ease.out(p), w: 3, a: 0.8 * (1 - p), mix: 0});
-	}
-	L.swirl(swirl, 640, Math.max(dustBorn(t, born), dustWhirl(t, whirl[0], whirl[1])), 1500, 0.8, 2, Math.floor(t));
+// the eight worlds, each an iconic view of one chapter, drawn at its native scale (place() shrinks it into its letter)
+const humW = (L: Layer, t: number) => {
+	L.bg(PAL.ink).ink(PAL.paper, PAL.coral, 1, 3).transform(1);
+	const age = t - RC.from;
+	const r = 18 + 2 * Math.sin((2 * Math.PI * t) / 60) + 34 * Math.exp(-Math.max(0, age) / 8);
+	L.slot(0, {type: 1, w: 1, group: 0, a: r, fillAmt: 0});
+	L.slot(1, {type: 1, w: 1, group: 1, a: r, fill: PAL.coral, fillAmt: 1});
+	L.glow(PAL.coral, 0.7, 80, 1);
+	L.fieldLines({spacing: 60, phase: t * 0.5, w: 2.6, a: 0.4, fall: 340, group: 0});
+	const p = clamp01(age / 46);
+	if (age >= 0) L.pulse(0, {g: 0, R: 900 * ease.out(p), w: 5, a: 1 - p, mix: 1});
+};
+const pingW = (L: Layer, t: number) => dotWorld(L, t, beatT(t), P_PAPER, 28);
+const soundW = (L: Layer, t: number) => wordOnly(L, t, beatT(t), P_PAPER, 'SOUND', 1.0);
+const motionW = (L: Layer, t: number) => wordOnly(L, t, beatT(t), P_BLUE, 'MOTION', 1.0);
+const frameW = (L: Layer, t: number) => scopeWorld(L, t, 1.0, [0, 0], P_INK, {eOut: 1, eB: 1});
+const plateW = (L: Layer, t: number) => roseWorld(L, t, 1.0, P_CORAL, [9 + 2 * (Math.floor((t - RC.from) / 30) % 4), 0.05], 0.02 * (t - RC.from));
+const togetherW = (L: Layer, t: number) => {
+	const sp = 0.0135 * (t - RC.from) * 1.4;
+	L.bg(PAL.yellow).ink(PAL.ink, PAL.blue, 1, 3).transform(1);
+	L.slot(0, {type: 2, w: 1, group: 0, a: 0, fill: PAL.ink, fillAmt: 1});
+	L.slot(1, {type: 2, w: 1, group: 1, a: 1, fill: PAL.blue, fillAmt: 1});
+	L.word(0, RING_R('MOTION', 0.7, 470, sp));
+	L.word(1, RING_R('SOUND', 0.7, 690, -sp));
+	L.fieldLines({spacing: 44, phase: beatPhase(t, RC.from), w: 2.4, a: 0.6, fall: 300, group: 0});
+};
+const sandW = (L: Layer, t: number) => roseWorld(L, t, 1.0, P_INK, [12 + 3 * (Math.floor((t - RC.from) / 30) % 4), 0.066], -0.02 * (t - RC.from));
+const WORLDS = [humW, pingW, soundW, motionW, frameW, plateW, togetherW, sandW];
+const WORLD_ZOOM = [0.55, 0.45, 0.24, 0.3, 0.34, 0.42, 0.3, 0.42]; // how much of the world one letter shows
+const WORLD_OL: RGB[] = [PAL.paper, PAL.ink, PAL.ink, PAL.paper, PAL.paper, PAL.ink, PAL.ink, PAL.paper];
+
+const recapCam = (t: number) => {
+	const push = 0.05 * ease.inOutSoft(clamp01((t - RC.living[0]) / (RC.lock - RC.living[0])));
+	const punch = t >= RC.lock ? 0.045 * Math.exp(-(t - RC.lock) / 7) : 0;
+	return 1 + push + punch - (t >= RC.lock ? 0.05 * ease.out(clamp01((t - RC.lock) / 40)) : 0);
+};
+const notePulse = (k: number, t: number) => {
+	const age = t - RC.notes[k];
+	return age < 0 ? 0 : Math.exp(-age / 9);
+};
+// the letter i with its beat pulse and, at the lock, its spring
+const recapGlyph = (i: number, t: number): Glyph => {
+	const g = {...WM_GL[i]};
+	const pu = notePulse(i, t);
+	const age = t - RC.lock - i * 4;
+	const env = age < 0 ? 0 : Math.exp(-age / 11);
+	g.s *= 1 + 0.07 * pu + 0.07 * env * Math.sin((Math.max(0, age) / 9) * Math.PI);
+	g.y += 34 * env * Math.sin((Math.min(Math.max(0, age), 40) / 9) * Math.PI) * 0.9;
+	g.r = 0.03 * env * Math.sin((Math.max(0, age) / 8) * Math.PI) * (i % 2 ? 1 : -1);
+	return g;
 };
 
-const collage = (fr: Frame, t: number) => {
+const recapLayer = (fr: Frame, t: number, k: number, Zc: number) => {
 	const h = Math.round(t);
-	const b = MT.builds;
-	const p = clamp01((t - CL.iris[0]) / (CL.iris[1] - CL.iris[0]));
-	const e = ease.in(p);
-	const swirl = -16 * e; // radians of twist at the centre: a whirlpool
-	const zoom = 1 - 0.3 * e;
-	const spin = spinAt(t);
-	fr.layers[0].on().bg(PAL.ink).transform(1);
-	// the plate
-	const rose = fr.layers[1].on();
-	const mode: [number, number] = h >= b[5] ? [20, 0.09] : h >= b[4] ? [16, 0.07] : [12, 0.054];
-	roseWorld(rose, t, 1.15 * zoom, P_CORAL, mode, spin * 1.4);
-	const w0 = CL.iris[0];
-	rose.swirl(swirl, 640, dustWhirl(t, w0 + 14, CL.iris[1]), 1500, 0.8, 2, Math.floor(t));
-	// the film's waveform rolled into a ring
-	if (h >= b[1]) {
-		const ring = fr.layers[2].on();
-		scopeWorld(ring, t, (1.0 + 0.04 * clamp01((t - b[1]) / 12)) * zoom, [0, 0], {bg: PAL.yellow, ink: PAL.yellow, acc: PAL.paper, a: 0}, {eOut: 1, eB: 1}, -spin * 0.6);
-		ring.swirl(swirl, 640, Math.max(dustBorn(t, b[1]), dustWhirl(t, w0 + 9, w0 + 27)), 1500, 0.8, 2, Math.floor(t));
-	}
-	// the two words orbit, one ring each way
-	if (h >= b[2]) orbitLayer(fr.layers[3].on(), t, 'MOTION', 0.62, 700, 1, PAL.paper, b[2], [w0 + 4, w0 + 22], swirl, zoom);
-	if (h >= b[3]) orbitLayer(fr.layers[4].on(), t, 'SOUND', 0.62, 880, -1, PAL.blue, b[3], [w0, w0 + 18], swirl, zoom);
-	if (h >= b[4]) orbitLayer(fr.layers[5].on(), t, 'WAVE', 0.62, 1060, 1, PAL.ink, b[4], [w0 + 2, w0 + 20], swirl, zoom);
-	const q = Math.max(...b.filter((x) => t >= x));
-	const age = t - q;
-	if (t < CL.iris[0]) {
-		fr.flash(PAL.paper, 0.22 * Math.exp(-age / 2.5) * (t >= b[0] ? 1 : 0));
-		fr.glitch(30 * Math.exp(-age / 3) * (age < 8 ? 1 : 0), 30, 4 * Math.exp(-age / 2.5) * (age < 8 ? 1 : 0));
-	} else fr.glitch(24 * Math.exp(-(t - CL.iris[0]) / 3), 30, 5 * Math.exp(-(t - CL.iris[0]) / 3));
+	const V = k === 0 ? RC.from : RC.S[k - 1];
+	if (h < V) return;
+	const L = fr.layers[8 - k]; // the newest world is the lowest layer: the letters made earlier stay on top of it
+	const e = ease.snap(clamp01((t - RC.S[k]) / RC.shrink));
+	const g = recapGlyph(k, t);
+	const info = CHARS[LETTERS[k]];
+	WORLDS[k](L, t);
+	const fullHW = W / 2 / Zc + 60;
+	const fullHH = H / 2 / Zc + 60;
+	const lhw = (info.w / 2) * g.s * 1.02 + 4;
+	const lhh = (info.h / 2) * g.s * 1.02 + 4;
+	const morph = smooth(0.2, 1, e);
+	L.window({cx: lerp(0, g.x, e), cy: lerp(0, g.y, e), hw: lerp(fullHW, lhw, e), hh: lerp(fullHH, lhh, e), corner: lerp(0, 22, e)}, morph, g, 1.3, WORLD_OL[k], 0.95 * smooth(0.3, 1, e));
+	const S: [number, number] = [lerp(W / 2, W / 2 + g.x * Zc, e), lerp(H / 2, H / 2 + g.y * Zc, e)];
+	L.place(S, lerp(1, WORLD_ZOOM[k], e), W, H);
 };
 
-// ------------------------------------------------------------------ the finale: sand gathers into the wordmark
-const FIN = wordBox('motioner', 0.8);
-const FIN_BASE = -80;
-const FIN_GL = () => wordGlyphs('motioner', 0.8, FIN.cx, FIN_BASE);
-const FIN_PERIOD: [number, number] = [FIN.period[0], FIN_BASE + FIN.r];
-const SAND = TL.sand;
-const SAND_MODES: [number, number][] = [[3, 0.02], [5, 0.03], [7, 0.041], [9, 0.052], [12, 0.066], [15, 0.082], [19, 0.1], [23, 0.12]];
-const sandState = (f: number) => {
-	let idx = -1;
-	for (let i = 0; i < SAND.steps.length; i++) if (f >= SAND.steps[i]) idx = i;
-	const cur = SAND_MODES[Math.max(idx, 0)];
-	const prev = SAND_MODES[Math.max(idx - 1, 0)];
-	const since = idx < 0 ? 99 : f - SAND.steps[idx];
-	return {m1: prev[0], k1: prev[1], m2: cur[0], k2: cur[1], mix: ease.out(clamp01(since / 10)), pulse: Math.exp(-since / 9)};
-};
-const finaleGlyphs = (f: number): Glyph[] => {
-	const gl = FIN_GL();
-	gl.forEach((g, i) => {
-		const age = f - FN.lock - i * 4;
-		if (age < 0) return;
-		const env = Math.exp(-age / 11);
-		g.y += 34 * env * Math.sin((Math.min(age, 40) / 9) * Math.PI) * 0.9;
-		g.s *= 1 + 0.07 * env * Math.sin((age / 9) * Math.PI);
-		g.r = 0.03 * env * Math.sin((age / 8) * Math.PI) * (i % 2 ? 1 : -1);
-	});
-	return gl;
-};
-const finaleWorld = (L: Layer, f: number, zoom = 1) => {
-	L.bg(PAL.ink).ink(PAL.paper, PAL.coral, 1, 3).transform(zoom);
-	const before = f < FN.lock;
-	// the seed: a breathing dot, two pings, then it travels to the full stop and lands on the lock
-	let r = 26 + 2 * Math.sin((2 * Math.PI * f) / 60) * (f < FN.dotPing ? 1 : 0);
-	for (const t of [FN.dotPing, FN.dotPing + 30]) if (f >= t) r += 12 * clamp01((f - t) / 2) * Math.exp(-(f - t) / 8);
-	const tp = ease.snap(clamp01((f - FN.morph[0]) / (FN.morph[1] - FN.morph[0])));
-	const sx = lerp(0, FIN_PERIOD[0], tp);
-	const sy = lerp(0, FIN_PERIOD[1], tp) + 70 * Math.sin(Math.PI * tp);
-	const rr = lerp(r, FIN.r, tp) * (1 + 0.2 * Math.exp(-(f - FN.lock) / 6) * clamp01((f - FN.lock + 2) / 2)) * (1 + 0.28 * Math.exp(-(f - FN.lastPing) / 8) * clamp01((f - FN.lastPing) / 2) * (f >= FN.lastPing ? 1 : 0));
-	L.slot(0, {type: 1, w: 1, group: 2, x: 0, y: 0, a: r, fillAmt: 0}); // the source of the pings
-	L.slot(1, {type: 2, w: 1, group: 0, a: 0, fill: PAL.paper, fillAmt: clamp01((f - FN.lock) / 14)});
-	L.word(0, finaleGlyphs(f));
-	L.wipe(lerp(-FIN.w / 2 - 120, FIN.w / 2 + 160, ease.inOut(clamp01((f - FN.lock) / 40))) + FIN.cx, 26);
-	L.slot(2, {type: 1, w: 1, group: 1, x: sx, y: sy, a: rr, fill: PAL.coral, fillAmt: 1});
-	L.glow(PAL.coral, f < FN.morph[0] ? 0.5 : 0.0, 60, 1);
-	const lineA = before ? 0.3 * (1 - clamp01((f - SAND.morph[0]) / 30)) : 0.75 * clamp01((f - FN.lock) / 12);
-	L.fieldLines({spacing: SP, phase: before ? f * 0.32 : beatPhase(f, FN.lock), w: 2.6, a: lineA, fall: before ? 260 : 720, group: before ? 2 : 0, emph: 6});
-	[FN.dotPing, FN.dotPing + 30].forEach((t, j) => {
-		const age = f - t;
-		if (age < 0 || !before) return;
-		const p = clamp01(age / 110);
-		L.pulse(j, {g: 2, R: 900 * ease.out(p), w: lerp(2.2, 5.5, (1 - p) * (1 - p)), a: Math.pow(1 - p, 0.9), mix: clamp01(1 - age / 14)});
-	});
-	[FN.lock, 1530, 1560, 1590, FN.lastPing].forEach((t, j) => {
-		const age = f - t;
+const recapFrame = (fr: Frame, t: number) => {
+	const Zc = recapCam(t);
+	const base = fr.layers[0].on();
+	base.bg(PAL.ink).ink(PAL.paper, PAL.coral, 1, 3).transform(Zc);
+	const glyphs = WM_GL.map((_, i) => recapGlyph(i, t));
+	base.slot(0, {type: 2, w: 1, group: 0, a: 0, fill: PAL.paper, fillAmt: smooth(RC.resolve[0], RC.resolve[1], t)});
+	base.word(0, glyphs);
+	// the full stop falls in when the last letter has locked and pings
+	const dp = clamp01((t - RC.drop[0]) / (RC.drop[1] - RC.drop[0]));
+	const dy = lerp(900, 0, 1 - Math.pow(1 - dp, 2)) * (t < RC.drop[1] ? 1 : 0);
+	const land = t >= RC.drop[1] ? Math.exp(-(t - RC.drop[1]) / 7) : 0;
+	const rd = WM.r * (1 - 0.18 * land + 0.1 * Math.sin(Math.PI * dp) * (dp < 1 ? 1 : 0) + 0.22 * Math.exp(-(t - FN.lastPing) / 8) * (t >= FN.lastPing ? 1 : 0));
+	if (t >= RC.drop[0]) base.slot(1, {type: 1, w: 1, group: 1, x: WM_PERIOD[0], y: WM_PERIOD[1] + dy, a: rd, fill: PAL.coral, fillAmt: 1});
+	base.glow(PAL.coral, t >= RC.drop[1] ? 0.35 : 0, 44, 1);
+	// contours echo around the name once it is whole; a ring of light leaves it on the lock and on the beats after
+	const whole = smooth(RC.drop[1], RC.drop[1] + 24, t);
+	base.fieldLines({spacing: SP, phase: beatPhase(t, RC.drop[1]) * 0.6, w: 2.6, a: 0.55 * whole, fall: 760, group: 0, emph: 6});
+	[RC.drop[1], RC.lock, 1470, 1500, 1530, 1560, FN.lastPing].forEach((t0, j) => {
+		const age = t - t0;
 		if (age < 0) return;
 		const p = clamp01(age / 100);
-		L.pulse(2 + j, {g: 0, R: 900 * ease.out(p), w: lerp(2, 4.5, 1 - p), a: Math.pow(1 - p, 1.1) * (j === 0 || j === 4 ? 1 : 0.8), mix: clamp01(1 - age / 10)});
+		base.pulse(j, {g: 0, R: 900 * ease.out(p), w: lerp(2, 4.5, 1 - p), a: Math.pow(1 - p, 1.1) * (j === 1 || j === 6 ? 1 : 0.7), mix: clamp01(1 - age / 10)});
 	});
-};
-// the plate again, in paper sand on ink: it materialises out of the dust of the whirl, changes with every note, and its nodal lines
-// are pulled onto the outline of the word
-const sandOverlay = (L: Layer, f: number, zoom: number) => {
-	const S = sandState(f);
-	const s = ease.inOutSoft(clamp01((f - SAND.morph[0]) / (SAND.morph[1] - SAND.morph[0])));
-	L.bg(PAL.ink, 0).ink(PAL.paper, PAL.coral, 1, 3).transform(zoom);
-	const rad = f < SAND.morph[0] ? 640 + 26 * S.pulse : lerp(640, 2600, ease.in(clamp01((f - SAND.morph[0]) / 30)));
-	const fade = 1 - ease.out(clamp01((f - FN.lock) / 30));
-	L.rosette({amt: fade, m1: S.m1, k1: S.k1, m2: S.m2, k2: S.k2, mix: S.mix, rot: 0.012 * (f - CL.iris[1]), radius: rad, lineW: 3.6 + 2 * S.pulse, edge: f < SAND.morph[0] ? 4 : 0, col: PAL.paper, sand: 2.4 + 3 * S.pulse});
-	L.roseWord(s);
-	L.word(0, finaleGlyphs(f));
-	L.swirl(0, 600, dustBorn(f, CL.iris[1] - 8) * (f < CL.iris[1] + 40 ? 1 : 0), 1100, 0.6, 2, Math.floor(f));
-};
-const finaleFrame = (fr: Frame, t: number) => {
-	const age = Math.max(0, t - FN.lock);
-	const punch = t >= FN.lock ? 1 + 0.04 * Math.exp(-age / 6) : 1;
-	finaleWorld(fr.layers[0].on(), t, punch);
-	if (t < FN.lock + 40) sandOverlay(fr.layers[1].on(), t, punch);
-	if (Math.round(t) >= FN.lock && age < 60) {
+	for (let k = 0; k < 8; k++) recapLayer(fr, t, k, Zc);
+	// the windows dust away, left to right, and the name is clean
+	if (t >= RC.resolve[0]) {
+		for (let k = 0; k < 8; k++) {
+			const L = fr.layers[8 - k];
+			const d = smooth(RC.resolve[0] + 6 * k, RC.resolve[0] + 6 * k + 34, t);
+			L.swirl(0, 600, d, 900, 0.5, 2, Math.floor(t));
+		}
+	}
+	if (Math.round(t) >= RC.lock && t - RC.lock < 60) {
+		const age = Math.max(0, t - RC.lock);
 		const q = 1 - age / 60;
-		fr.ring(W / 2, H / 2, (2600 * (1 - Math.pow(2, -5 * (age / 45)))) / (1 - Math.pow(2, -5)), 150, 34 * q, 9 * q, 0.3 * q, PAL.paper);
+		fr.ring(W / 2, H / 2, (2600 * (1 - Math.pow(2, -5 * (age / 45)))) / (1 - Math.pow(2, -5)), 150, 30 * q, 8 * q, 0.35 * q, PAL.paper);
 	}
 };
 
 // ------------------------------------------------------------------ what is under a point of the screen (the HUD picks its colour from it)
-const CUT_DARK = [false, false, true, true, false, false, true, true, false, false, true, true, false, false, true, true];
 export const hudDark = (t: number, px: number, py: number): boolean => {
 	// px, py: screen position, origin top-left (DOM)
 	const sx = px;
@@ -494,15 +441,8 @@ export const hudDark = (t: number, px: number, py: number): boolean => {
 	}
 	if (t < PL.flood1[0]) return false;
 	if (t < PL.flood1[1]) return floodR(t, PL.flood1[0], PL.flood1[1]) > dist(W / 2, H / 2); // coral (light) becomes blue (dark) inside the ring
-	if (t < PL.flood2[0]) return true;
-	if (t < PL.flood2[1]) return true;
-	if (t < MT.from) return true;
-	if (t < MT.together[0]) return CUT_DARK[cutIndex(t)];
-	if (t < CL.iris[0]) return false;
-	if (t < CL.iris[1]) return t >= CL.iris[0] + 16; // the dust of the whirl turns the coral into ink
-	return true;
+	return true; // blue, ink, and the name on ink (the chrome is hidden while the recap runs)
 };
-
 
 // the plate: coral, then a flood to blue on bar 7, then a flood to ink for the build
 const P_INK2: Pal = {bg: PAL.ink, ink: PAL.paper, acc: PAL.coral};
@@ -527,7 +467,28 @@ const plateFrame = (fr: Frame, t: number) => {
 		roseWorld(fr.layers[1].on(1), t, z, P_INK2);
 		const q = clamp01((t - b0) / (b1 - b0));
 		fr.ring(W / 2, H / 2, floodR(t, b0, b1), 110, 26 * (1 - q), 7 * (1 - q), 0.55 * (1 - q), PAL.coral);
-	} else roseWorld(fr.layers[0].on(), t, z, P_INK2);
+	} else registrationFrame(fr, t, z);
+};
+
+// the build as a print run: the plate is pulled apart into three colour separations (coral, blue, yellow) that drift out of register,
+// tremble with the snare roll and snap into register on the cut
+const registrationFrame = (fr: Frame, t: number, z: number) => {
+	fr.layers[0].on().bg(PAL.ink).transform(1);
+	const grow = smooth(1004, 1064, t);
+	const snap = 1 - smooth(1066, 1077, t);
+	const tremble = 1 + 0.35 * Math.sin(t * 1.9) * grow;
+	const off = 34 * grow * snap * tremble;
+	const plates: [RGB, [number, number]][] = [
+		[PAL.coral, [off, off * 0.55]],
+		[PAL.blue, [-off, off * 0.55]],
+		[PAL.yellow, [0, -off * 0.95]],
+	];
+	plates.forEach(([c, pan], i) => {
+		const L = fr.layers[1 + i].on();
+		roseWorld(L, t, z, {bg: PAL.ink, ink: c, acc: c, a: 0}, undefined, 0, pan);
+		L.additive();
+		L.slot(1, {type: 1, w: 1, group: 1, x: 0, y: 0, a: 0, fillAmt: 0});
+	});
 };
 
 export const frameAt = (t: number): Frame => {
@@ -546,13 +507,9 @@ export const frameAt = (t: number): Frame => {
 			fr.flash(PAL.paper, 0.4 * Math.exp(-Math.max(0, t - ping.hit) / 2.5));
 			fr.ring(W / 2, H / 2, R, 110, 34 * rim, 9 * rim, 0.7 * rim, PAL.coral);
 		} else wordWorld(fr.layers[0].on(), t, z, false);
-	} else if (h >= CL.iris[1]) {
-		finaleFrame(fr, t);
-	} else if (h >= MT.together[0]) {
-		collage(fr, t);
-	} else if (h >= MT.from && h < MT.together[0]) {
-		montageFrame(fr, t);
-	} else if (t >= RG.portal[1] && h < MT.from) {
+	} else if (h >= RC.from) {
+		recapFrame(fr, t);
+	} else if (t >= RG.portal[1] && h < RC.from) {
 		plateFrame(fr, t);
 	} else if (h >= RG.portal[0]) {
 		const age = Math.max(0, t - RG.portal[0]);
@@ -593,7 +550,7 @@ export const frameAt = (t: number): Frame => {
 		} else wordWorld(fr.layers[0].on(), t, z, true);
 	}
 	// the big hits punch: a two-frame attack, a fast decay
-	for (const [ht, amt] of [[sound.lock, 0.16], [RG.portal[0], 0.28], [MT.from, 0.3], [MT.together[1], 0.34], [FN.lock, 0.3]] as [number, number][]) {
+	for (const [ht, amt] of [[sound.lock, 0.16], [RG.portal[0], 0.28], [RC.from, 0.3], [RC.lock, 0.3]] as [number, number][]) {
 		if (h >= ht) fr.flash(PAL.paper, amt * Math.exp(-Math.max(0, t - ht) / 3.2)); // lands on the hit's own frame
 	}
 	return fr;

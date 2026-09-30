@@ -45,7 +45,8 @@ export const Film: React.FC = () => {
 
 	// chrome: fades in, hides during the push-through, follows the colour under it
 	const chromeA = sm(6, 26, f) * (1 - sm(452, 466, f)) + sm(510, 526, f) * sm(452, 466, f);
-	const opacity = f < 452 ? sm(6, 26, f) : f < 510 ? 1 - sm(452, 466, f) : sm(510, 526, f);
+	const recapHide = sm(1072, 1084, f) * (1 - sm(TL.recap.living[0] + 4, TL.recap.living[0] + 30, f));
+	const opacity = (f < 452 ? sm(6, 26, f) : f < 510 ? 1 - sm(452, 466, f) : sm(510, 526, f)) * (1 - recapHide);
 	void chromeA;
 	const col = (x: number, y: number) => (hudDark(f, x, y) ? PAPER : INK);
 	const txt = (x: number, y: number, extra: React.CSSProperties = {}): React.CSSProperties => ({

@@ -2,7 +2,7 @@
 export const DW = 128;
 const OW = 72; // words
 const OP = 48; // pulses
-export const NL = 6;
+export const NL = 10;
 export type RGB = [number, number, number];
 
 export const hex = (h: string): RGB => {
@@ -71,8 +71,30 @@ export class Layer {
 		this.s(4, c2[0], c2[1], c2[2], lineW);
 		return this;
 	}
+	private xfv = [1, 0, 0, 0];
 	transform(zoom: number, px = 0, py = 0, rot = 0) {
+		this.xfv = [zoom, px, py, rot];
 		this.s(5, zoom, px, py, rot);
+		return this;
+	}
+	/** put the world's origin at screen position S (pixels, y up) and multiply its zoom (used to shrink a world into a window) */
+	place(S: [number, number], zoomMul: number, W: number, H: number) {
+		const z = this.xfv[0] * zoomMul;
+		const rot = this.xfv[3];
+		const qx = (S[0] - W / 2) / z;
+		const qy = (S[1] - H / 2) / z;
+		const cr = Math.cos(rot);
+		const sr = Math.sin(rot);
+		this.transform(z, -(cr * qx - sr * qy), -(sr * qx + cr * qy), rot);
+		return this;
+	}
+	/** layer shown through a window (mask mode 3): a rectangle that morphs into a glyph; outline in ol */
+	window(rect: {cx: number; cy: number; hw: number; hh: number; corner: number}, morph: number, g: {x: number; y: number; s: number; r: number; idx: number}, feather: number, ol: RGB, olA: number) {
+		this.s(0, 1, 3, 0, 0);
+		this.s(107, rect.cx, rect.cy, rect.hw, rect.hh);
+		this.s(108, rect.corner, morph, g.idx, g.s);
+		this.s(109, g.x, g.y, g.r, feather);
+		this.s(110, ol[0], ol[1], ol[2], olA);
 		return this;
 	}
 	swirl(amount: number, radius: number, dissolve = 0, dissolveR = 900, spread = 0.7, grain = 2, seed = 0) {
@@ -84,8 +106,12 @@ export class Layer {
 		this.s(106, mix, scale, 0, 0);
 		return this;
 	}
+	additive() {
+		this.d[1 * 4 + 3] = 1;
+		return this;
+	}
 	wipe(x: number, soft: number) {
-		this.s(1, x, soft, 1, 0);
+		this.s(1, x, soft, 1, this.d[1 * 4 + 3]);
 		return this;
 	}
 	bend(k: number) {
@@ -180,7 +206,11 @@ export class Frame {
 		return this;
 	}
 	pack(): Float32Array {
-		this.s(5, this.layers.filter((l) => l.d[0] > 0.5).length);
+		let nOn = 0;
+		this.layers.forEach((l, i) => {
+			if (l.d[0] > 0.5) nOn = i + 1;
+		});
+		this.s(5, nOn);
 		const out = new Float32Array(DW * 4 * (NL + 1));
 		for (let i = 0; i < NL; i++) out.set(this.layers[i].d, i * DW * 4);
 		out.set(this.g, NL * DW * 4);

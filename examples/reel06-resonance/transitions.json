@@ -48,33 +48,33 @@
   "kind": "zoom"
  },
  {
-  "name": "plate accelerates into the montage",
-  "start": 1040,
-  "end": 1090,
-  "kind": "cut"
- },
- {
-  "name": "montage cuts",
-  "start": 1078,
-  "end": 1262,
-  "kind": "cut"
- },
- {
-  "name": "everything together",
-  "start": 1258,
-  "end": 1322,
+  "name": "plate registers into colour separation",
+  "start": 840,
+  "end": 1080,
   "kind": "flash"
  },
  {
-  "name": "collapse into the dot",
-  "start": 1318,
-  "end": 1368,
-  "kind": "zoom"
+  "name": "first world: window opens out of the plate",
+  "start": 1076,
+  "end": 1130,
+  "kind": "morph"
  },
  {
-  "name": "rewind onto motioner.",
-  "start": 1436,
-  "end": 1516,
+  "name": "worlds shrink into letters (recap)",
+  "start": 1105,
+  "end": 1325,
+  "kind": "morph"
+ },
+ {
+  "name": "the name lives, then locks",
+  "start": 1321,
+  "end": 1445,
   "kind": "seamless"
+ },
+ {
+  "name": "lock to wordmark (sand + fill)",
+  "start": 1436,
+  "end": 1700,
+  "kind": "morph"
  }
 ]
