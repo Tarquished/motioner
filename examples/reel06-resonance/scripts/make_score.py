@@ -161,7 +161,11 @@ add("stab_hit", tg[1], bar=bar_of(tg[1]), dur=0.7, gain_db=-6, label="layer 2")
 add("drum", tg[1], kind="snare", gain_db=-8, label="layer 2 snare")
 add("bellrun", tg[2], notes=[64, 67, 71, 74, 76, 79, 83, 86], step=2 / 60, gain_db=-6, label="layer 3")
 end_t = TL["montage"]["together"][1]
-for i, t in enumerate((1305, 1309, 1312, 1314, 1316, 1317.5, 1318.5, 1319.2)):
+add("stab_hit", tg[4], bar=bar_of(tg[4]), dur=0.7, gain_db=-5, label="layer 5")
+add("drum", tg[4], kind="snare", gain_db=-8, label="layer 5 snare")
+add("stab_hit", tg[5], bar=bar_of(tg[5]), dur=0.7, gain_db=-4, label="layer 6")
+add("drum", tg[5], kind="tom", gain_db=-7, label="layer 6 tom")
+for i, t in enumerate([end_t - d for d in (12, 9, 7, 5, 3.5, 2.4, 1.5, 0.8)]):
     add("drum", t, kind="snare", gain_db=-8 + 6 * i / 7, label="final roll")
 add("tutti", end_t, size=3.6, bar=bar_of(end_t), gain_db=-0.5, label="EVERYTHING")
 ir0, ir1 = TL["collapse"]["iris"]
@@ -171,11 +175,14 @@ add("rewind", ir1 - GAP, frames=(ir1 - GAP) - ir0, size=3.0, gain_db=-5, label="
 fn = TL["finale"]
 add("ping", ir1 + 4, midi=88, decay=1.0, echoes=1, gain_db=-16, label="the dot is back")
 add("ping", fn["dotPing"], midi=76, decay=2.0, echoes=2, gain_db=-9, label="dot ping")
+add("sand", ir1, frames=(fn["rewind"][1] - GAP) - ir1, d0=25, d1=900, gain_db=-21, label="sand gathers")
 add("ping", fn["dotPing"] + 30, midi=79, decay=2.0, echoes=2, gain_db=-7, label="dot ping")
 r0, lk = fn["rewind"]
 add("rewind", lk - GAP, frames=(lk - GAP) - r0, size=3.6, gain_db=-3, label="rewind")
-for f0, m in zip((1458, 1469, 1478, 1485, 1490, 1493), (76, 79, 83, 88, 91, 95)):
-    add("tick_land", f0, midi=m, gain_db=-11, label="ring lands")
+for f0, m in zip([x for x in TL["sand"]["steps"] if x >= 1452], (76, 79, 83, 88, 91)):
+    add("tick_land", f0, midi=m, gain_db=-11, label="sand steps")
+add("ping", TL["sand"]["steps"][2], midi=83, decay=1.6, echoes=2, gain_db=-9, label="plate note")
+add("ping", TL["sand"]["steps"][0], midi=71, decay=1.6, echoes=2, gain_db=-10, label="plate note")
 
 # ---- 11 the wordmark
 add("tutti", lk, size=4.6, bar=bar_of(lk), gain_db=2, ring=ring_hz(12), label="motioner.")
@@ -201,7 +208,7 @@ score = {
         {"kit": "groove", "from": 720, "to": 960, "gain": 0.9},
         {"kit": "build", "from": 960, "to": 1080, "gain": 0.9},
         {"kit": "montage", "from": 1080, "to": 1260, "gain": 0.9},
-        {"kit": "together", "from": 1260, "to": 1320, "gain": 0.9},
+        {"kit": "together", "from": 1260, "to": end_t, "gain": 0.9},
         {"kit": "drone", "from": ir1, "to": lk, "fade_in": 1.0, "fade_out": 0.04, "gain": 0.9},
         {"kit": "finale", "from": lk, "to": 1680, "gain": 0.95},
         {"kit": "outro", "from": 1680, "to": 1800, "gain": 0.9},

@@ -30,7 +30,7 @@ const int O_WORD = 72;
 const float PI = 3.14159265359;
 
 vec4 T(int l, int i){ return texelFetch(uD, ivec2(i, l), 0); }
-float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float hash(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 float hash1(float x){ return fract(sin(x * 127.1) * 43758.5453); }
 
 // ---------------------------------------------------------------- glyphs
@@ -160,7 +160,7 @@ void term(float m, float p, float k, float q, float r, float th, float w, inout 
 	G += w * ca * cb;
 	gr += w * vec2(-k * ca * sb, -m * sa * cb / max(r, 1.0));
 }
-void rosetteG(vec2 u, vec4 r0, vec4 r1, out float G, out float gmag){
+void rosetteG(vec2 u, vec4 r0, vec4 r1, out float G, out vec2 gv){
 	float r = length(u);
 	float th = atan(u.y, u.x) + r1.w;
 	float mx = r1.z;
@@ -171,8 +171,10 @@ void rosetteG(vec2 u, vec4 r0, vec4 r1, out float G, out float gmag){
 	term(r1.x, 0.0, r1.y, 0.0, r, th, 1.0, Gb, gb);
 	term(r1.x + 2.0, 1.1, 1.35 * r1.y, 0.6, r, th, 0.9, Gb, gb);
 	G = mix(Ga, Gb, mx);
-	vec2 g = mix(ga, gb, mx);
-	gmag = max(length(g), 1e-4);
+	vec2 g = mix(ga, gb, mx);                       // (d/dr, (1/r) d/dtheta)
+	vec2 rh = u / max(r, 1e-3);
+	vec2 th_ = vec2(-rh.y, rh.x);
+	gv = g.x * rh + g.y * th_;
 }
 
 // ---------------------------------------------------------------- one layer
@@ -187,6 +189,14 @@ vec4 renderLayer(int l, vec2 p){
 	float cr = cos(xf.w), sr = sin(xf.w);
 	vec2 q = (p - uRes * 0.5) / zoom;
 	vec2 u = vec2(cr * q.x - sr * q.y, sr * q.x + cr * q.y) + xf.yz;
+	vec4 sw = T(l, 104);   // swirl (rad), swirl radius, dissolve, dissolve radius
+	vec4 sw2 = T(l, 105);  // spread, grain px, seed
+	float r_pre = length(u);
+	if (abs(sw.x) > 1e-4){
+		float a_ = sw.x * exp(-r_pre / max(sw.y, 1.0));
+		float ca = cos(a_), sa = sin(a_);
+		u = vec2(ca * u.x - sa * u.y, sa * u.x + ca * u.y);
+	}
 
 	// slot fields per group
 	float sumW[6]; float mixD[6];
@@ -218,8 +228,17 @@ vec4 renderLayer(int l, vec2 p){
 	if (r0.x > 0.001){
 		vec4 r1 = T(l, 10); vec4 r2 = T(l, 11); vec4 r3 = T(l, 12);
 		float rad = r2.x;
-		float G, gm;
-		rosetteG(u, r0, r1, G, gm);
+		float G; vec2 gv;
+		rosetteG(u, r0, r1, G, gv);
+		vec4 wm = T(l, 106); // [word mix, distance to field scale, 0, 0]: the sand's nodal lines are pulled onto the outline of word 0
+		if (wm.x > 0.001){
+			float D = wordD(l, 0, u);
+			float e = 1.5;
+			vec2 gD = vec2(wordD(l, 0, u + vec2(e, 0.0)) - wordD(l, 0, u - vec2(e, 0.0)), wordD(l, 0, u + vec2(0.0, e)) - wordD(l, 0, u - vec2(0.0, e))) / (2.0 * e);
+			G = mix(G, wm.y * D, wm.x);
+			gv = mix(gv, wm.y * gD, wm.x);
+		}
+		float gm = max(length(gv), 1e-4);
 		float dist = abs(G) / gm * zoom;                    // px to the nodal line
 		float rr = length(u);
 		float inside = clamp((rad - rr) * zoom, 0.0, 1.0);
@@ -284,6 +303,13 @@ vec4 renderLayer(int l, vec2 p){
 			alpha = max(alpha, gg * 0.6);
 		}
 	}
+	if (sw.z > 0.001){
+		// dust: the layer breaks into grains, the outer parts first (or, run backwards, it materialises out of dust)
+		float rr_ = clamp(r_pre / max(sw.w, 1.0), 0.0, 1.0);
+		float k = sw.z * (1.0 + sw2.x) - (1.0 - rr_) * sw2.x;
+		float hg = hash(floor(p / max(sw2.y, 1.0)) + sw2.z);
+		alpha *= step(k, hg);
+	}
 	return vec4(col, alpha);
 }
 
@@ -320,7 +346,7 @@ vec3 compose(vec2 p){
 		if (m <= 0.0) continue;
 		vec4 c = renderLayer(l, p);
 		float a = c.a * m;
-		if (l == 0) a = 1.0;
+		if (l == 0 && T(0, 104).z <= 0.001) a = 1.0;
 		col = mix(col, c.rgb, a);
 	}
 	return col;

@@ -75,6 +75,15 @@ export class Layer {
 		this.s(5, zoom, px, py, rot);
 		return this;
 	}
+	swirl(amount: number, radius: number, dissolve = 0, dissolveR = 900, spread = 0.7, grain = 2, seed = 0) {
+		this.s(104, amount, radius, dissolve, dissolveR);
+		this.s(105, spread, grain, seed, 0);
+		return this;
+	}
+	roseWord(mix: number, scale = 0.02) {
+		this.s(106, mix, scale, 0, 0);
+		return this;
+	}
 	wipe(x: number, soft: number) {
 		this.s(1, x, soft, 1, 0);
 		return this;

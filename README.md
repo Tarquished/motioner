@@ -32,9 +32,9 @@ Every frame and every sound of these six films was written in code by an agent u
 
 ### 06 · Resonance &nbsp;<sub>30 s · 2560x1440 · 60 fps · no 3D</sub>
 
-Sound made visible. One shader draws the whole film: everything is a distance field, so a ring can travel along a dot, then along a word. A dot pings and the room turns to paper; time runs backwards and the rings **rewind onto the word SOUND**; it melts letter by letter into MOTION; the camera falls into the counter of the O and comes out inside the film's **own waveform**, which zooms out to the whole 30 seconds, bends into a ring and opens like a lens onto a **plate of sand** where every note of the arpeggio is a different Chladni pattern. A montage on half beats, everything on screen at once, an iris that closes it all into the dot, and the rings rewind once more to draw *motioner.* A code-written score with booms, choir and time-reversed sound.
+Sound made visible. One shader draws the whole film: everything is a distance field, so a ring can travel along a dot, then along a word. A dot pings and the room turns to paper; time runs backwards and the rings **rewind onto the word SOUND**; it melts letter by letter into MOTION; the camera falls into the counter of the O and comes out inside the film's **own waveform**, which zooms out to the whole 30 seconds, bends into a ring and opens like a lens onto a **plate of sand** where every note of the arpeggio is a different Chladni pattern. A montage on half beats, then **everything at once**: the plate, the waveform ring and the words MOTION, SOUND and WAVE orbiting on counter-rotating rings, each layer born out of dust on its beat. A whirl twists it all, the coral room turns to dust and is blown away, and out of the same dust the plate of sand returns on ink. Its lines are pulled onto the outline of *motioner.*: the sand writes the name, a lens of light runs out of the word, and the seed drops in as its full stop. A code-written score with booms, choir and time-reversed sound.
 
-https://github.com/user-attachments/assets/9bd7f2a0-9955-4855-99f0-35ed1702280a
+https://github.com/user-attachments/assets/0abc44b7-dfe9-4036-a716-1c09a24869d8
 
 [Full quality 1440p60 MP4](videos/06-motioner-reel06-resonance.mp4)
 
